@@ -1,0 +1,9 @@
+# IDE / Editor
+.idea
+
+# Dependency directories and files
+node_modules/
+.tool-versions
+
+# Folders
+/dist
