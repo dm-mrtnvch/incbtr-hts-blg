@@ -1,10 +1,8 @@
 import {NextFunction, Request, Response, Router} from "express"
 import {body, query, validationResult} from "express-validator";
+import {RequestWithBody, RequestWithParams, RequestWithParamsAndBody} from "../../interfaces";
 import {blogsRepository} from "../../repositories/blogs";
 
-type RequestWithParams<P>  = Request<P, {}, {}, {}>
-type RequestWithBody<B> = Request<{}, {}, B, {}>
-type RequestWithParamsAndBody<P, B> = Request<P, {}, B, {}>
 
 export const BlogsRouter = Router()
 

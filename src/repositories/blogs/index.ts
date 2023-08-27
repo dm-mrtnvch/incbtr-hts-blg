@@ -1,19 +1,5 @@
-type BlogType = {
-  id: string
-  name: string
-  description: string
-  websiteUrl: string
-}
+import {blogsDb} from "../../db/mock_data";
 
-
-const blogsDb: BlogType[] = [
-  {
-    id: '1',
-    name: 'first blog',
-    description: 'first description',
-    websiteUrl: 'www.example.com'
-  }
-]
 
 export const blogsRepository = {
   getAllBlogs() {
@@ -50,12 +36,12 @@ export const blogsRepository = {
     return Boolean(blogToUpdate)
   },
   deleteBlogById(id: string){
-    const blogToDeleteIndex = blogsDb.findIndex(blog => blog.id === id)
+    const blogIndexToDelete = blogsDb.findIndex(blog => blog.id === id)
 
-    if(blogToDeleteIndex === -1){
+    if(blogIndexToDelete === -1){
       return false
     } else {
-      blogsDb.splice(blogToDeleteIndex, 1)
+      blogsDb.splice(blogIndexToDelete, 1)
       return true
     }
   }
