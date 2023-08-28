@@ -18,6 +18,7 @@ export const blogsRepository = {
     }
 
     blogsDb.push(newBlog)
+    return newBlog
   },
   updateBlogById(id: string, name: string, description: string, websiteUrl: string): boolean {
     const blogToUpdate = blogsDb.find(blog => blog.id === id)
