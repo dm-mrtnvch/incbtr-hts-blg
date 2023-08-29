@@ -40,6 +40,9 @@ const AuthMiddleware = (req: Request, res: Response, next: NextFunction) => {
 };
 
 BlogsRouter.post('/',
+  nameValidation,
+  descriptionValidation,
+  websiteUrlValidation,
   (req: RequestWithBody<{ name: string, description: string, websiteUrl: string }>, res: Response) => {
     const {name, description, websiteUrl} = req.body
 
