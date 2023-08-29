@@ -4,7 +4,7 @@ export interface IUnique {
   id: string
 }
 
-export interface iBlog extends IUnique {
+export interface IBlog extends IUnique {
   name: string
   description: string
   websiteUrl: string

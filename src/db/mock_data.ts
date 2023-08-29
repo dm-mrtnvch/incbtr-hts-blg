@@ -1,6 +1,6 @@
-import {iBlog, IPost} from "../interfaces";
+import {IBlog, IPost} from "../interfaces";
 
-export const blogsDb: iBlog[] = [
+export const blogsDb: IBlog[] = [
   {
     id: '1',
     name: 'first blog',

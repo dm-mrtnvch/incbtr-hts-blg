@@ -3,7 +3,7 @@ import {blogsDb, postsDb} from "./db/mock_data";
 import {BlogsRouter} from "./routes/blogs";
 import {postsRouter} from "./routes/posts";
 
-const app = express()
+export const app = express()
 app.use(express.json())
 const port = process.env.PORT || 3020
 

@@ -1,4 +1,5 @@
 import {blogsDb} from "../../db/mock_data";
+import {IBlog} from "../../interfaces";
 
 
 export const blogsRepository = {
@@ -10,7 +11,7 @@ export const blogsRepository = {
   },
   createBlog(name: string, description: string, websiteUrl: string){
     const id = String(+new Date())
-    const newBlog = {
+    const newBlog: IBlog = {
       id,
       name,
       description,
