@@ -6,7 +6,7 @@ export const blogsRepository = {
   getAllBlogs() {
     return blogsDb
   },
-  getBlogById(id: string) {
+  getBlogById(id: string): IBlog | undefined {
     return blogsDb.find(blog => blog.id === id)
   },
   createBlog(name: string, description: string, websiteUrl: string){
@@ -32,19 +32,24 @@ export const blogsRepository = {
         websiteUrl: websiteUrl ?? blogToUpdate.websiteUrl
       }
       Object.assign(blogToUpdate, updatedBlog)
-      console.log(blogToUpdate)
 
     }
     return Boolean(blogToUpdate)
   },
   deleteBlogById(id: string){
     const blogIndexToDelete = blogsDb.findIndex(blog => blog.id === id)
+    const blogLengthBeforeUpdate = blogsDb.length
 
     if(blogIndexToDelete === -1){
       return false
     } else {
       blogsDb.splice(blogIndexToDelete, 1)
-      return true
+      const blogLengthAfterUpdate = blogsDb.length
+      // is it necessary check for deleting
+      // or use this check
+      // return this.getBlogById(id)
+
+      return blogLengthBeforeUpdate - blogLengthAfterUpdate === 1
     }
   }
 }

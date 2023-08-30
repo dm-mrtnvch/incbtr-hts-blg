@@ -7,6 +7,8 @@ export const app = express()
 app.use(express.json())
 const port = process.env.PORT || 3020
 
+console.log('4444')
+
 app.delete('/testing/all-data', (req: Request, res: Response) => {
   blogsDb.length = 0
   postsDb.length = 0
