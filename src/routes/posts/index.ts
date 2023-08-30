@@ -67,7 +67,14 @@ postsRouter.put('/:id',
   body('title').notEmpty().trim().isLength({max: 30}),
   body('shortDescription').notEmpty().trim().isLength({max: 100}),
   body('content').notEmpty().trim().isLength({max: 1000}),
-  body('blogId').trim().notEmpty(),
+  body('blogId').trim().notEmpty().custom(async (blogId, { req }) => {
+    console.log('sdfsdf')
+    const blog = await blogsRepository.getBlogById(blogId);
+    if (!blog) {
+      throw new Error('Blog not found');
+    }
+  }).withMessage('Specified blog does not exist.'),
+
   (req: RequestWithParamsAndBody<{ id: string }, {
     title: string,
     shortDescription: string,
@@ -77,6 +84,8 @@ postsRouter.put('/:id',
     const {id} = req.params
     const {title, blogId, content, shortDescription} = req.body
     const post = postsRepository.getPostById(id)
+
+    console.log('sdfsdf')
 
     const errors = validationResult(req).array({onlyFirstError: true})
 
@@ -88,6 +97,7 @@ postsRouter.put('/:id',
           field: error.path
         })
       })
+      console.log('errorsMessages', errorsMessages)
       res.status(400).send({errorsMessages})
       return
     }
