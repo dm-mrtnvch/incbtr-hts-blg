@@ -34,3 +34,17 @@ export const postsDb: IPost[] = [
     blogName: 'second blog'
   }
 ]
+
+
+export const testingMockData = {
+  firstCreatedBlog: {
+    name: 'first blog',
+    description: 'first description',
+    websiteUrl: 'https://www.example.com'
+  },
+  secondCreatedBlog: {
+      name: 'second blog',
+      description: 'second description',
+      websiteUrl: 'https://www.second-example.com'
+  }
+}

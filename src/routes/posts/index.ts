@@ -14,10 +14,10 @@ postsRouter.get('/', (req: Request, res: Response) => {
   res.send(posts)
 })
 
-postsRouter.get(':/id', (req: RequestWithParams<{ id: string }>, res: Response) => {
+postsRouter.get('/:id', (req: RequestWithParams<{ id: string }>, res: Response) => {
   const {id} = req.params
   const post = postsRepository.getPostById(id)
-
+  console.log('post', post)
   if (post) {
     res.send(post)
   } else {
@@ -30,7 +30,6 @@ postsRouter.post('/',
   body('title').notEmpty().trim().isLength({max: 30}),
   body('shortDescription').notEmpty().trim().isLength({max: 100}),
   body('content').notEmpty().trim().isLength({max: 1000}),
-  body('blogId').notEmpty().trim().isLength({max: 100}),
   (req: RequestWithBody<{
     title: string,
     shortDescription: string,
@@ -40,11 +39,10 @@ postsRouter.post('/',
     const {title, shortDescription, content, blogId} = req.body
 
     const errors = validationResult(req).array({onlyFirstError: true})
-    console.log(errors)
 
     if (errors.length) {
-      const errorsMessages = []
-      errors.forEach(error => {
+      const errorsMessages: any = []
+      errors.forEach((error: any) => {
         errorsMessages.push({
           message: error.msg,
           field: error.path
@@ -55,7 +53,6 @@ postsRouter.post('/',
     }
 
     const newPost = postsRepository.createPost(title, shortDescription, content, blogId)
-    console.log('ssss')
     if (newPost) {
       res.status(201).send(newPost)
     } else {
@@ -65,6 +62,9 @@ postsRouter.post('/',
 
 postsRouter.put('/:id',
   AuthMiddleware,
+  body('title').notEmpty().trim().isLength({max: 30}),
+  body('shortDescription').notEmpty().trim().isLength({max: 100}),
+  body('content').notEmpty().trim().isLength({max: 1000}),
   (req: RequestWithParamsAndBody<{ id: string }, {
     title: string,
     shortDescription: string,
@@ -74,6 +74,20 @@ postsRouter.put('/:id',
     const {id} = req.params
     const {title, blogId, content, shortDescription} = req.body
     const post = postsRepository.getPostById(id)
+
+    const errors = validationResult(req).array({onlyFirstError: true})
+
+    if (errors.length) {
+      const errorsMessages: any = []
+      errors.forEach((error: any) => {
+        errorsMessages.push({
+          message: error.msg,
+          field: error.path
+        })
+      })
+      res.status(400).send({errorsMessages})
+      return
+    }
 
     if (!post) {
       res.sendStatus(404)
@@ -90,7 +104,7 @@ postsRouter.put('/:id',
     }
     Object.assign(post, updatedPost)
 
-    res.sendStatus(404)
+    res.sendStatus(204)
   })
 
 postsRouter.delete('/:id', (req: RequestWithParams<{ id: string }>, res: Response) => {

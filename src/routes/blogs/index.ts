@@ -2,7 +2,7 @@ import {NextFunction, Request, Response, Router} from "express"
 import {body, checkSchema, query, Result, validationResult} from "express-validator";
 import {ValidationError} from "express-validator/src/base";
 import {RequestWithBody, RequestWithParams, RequestWithParamsAndBody} from "../../interfaces";
-import {AuthMiddleware, blogsValidationMiddleware} from "../../middlewares/middlewares";
+import {AuthMiddleware} from "../../middlewares/middlewares";
 import {blogsRepository} from "../../repositories/blogs";
 
 
@@ -26,25 +26,25 @@ BlogsRouter.get('/:id', (req: RequestWithParams<{ id: string }>, res: Response) 
 
 
 BlogsRouter.post('/',
-  // trim before or after notEmpty
+  /// trim before or after notEmpty
   AuthMiddleware,
   body('name').trim().notEmpty().isLength({max: 15}),
   body('description').trim().notEmpty().isLength({max: 500}),
-  // is notEmpty() necessary if use isLength() ?
+  /// is notEmpty() necessary if use isLength() ?
   body('websiteUrl').trim().notEmpty().isLength({max: 100}).matches('^https://([a-zA-Z0-9_-]+\\.)+[a-zA-Z0-9_-]+(\\/[a-zA-Z0-9_-]+)*\\/?$').withMessage('Incorrect websiteUrl field'),
   (req: RequestWithBody<{ name: string, description: string, websiteUrl: string }>, res: Response) => {
     const {name, description, websiteUrl} = req.body
 
-    // if add .array({onlyFirstError: true}) => no formatter in response
+    /// if add .array({onlyFirstError: true}) => no formatter in response
     const validation = validationResult(req).array({onlyFirstError: true})
 
-    // why validation.isEmpty (not validation.errors.isEmpty)
-    // !validation.errors.isEmpty() = TS2341: Property 'errors' is private and only accessible within class 'Result '.
-    // types for errorsMessages ?
+    /// why validation.isEmpty (not validation.errors.isEmpty)
+    /// !validation.errors.isEmpty() = TS2341: Property 'errors' is private and only accessible within class 'Result '.
+    /// types for errorsMessages ?
 
     if (validation.length) {
       const errorsMessages: any = []
-      validation.forEach(error => {
+      validation.forEach((error: any) => {
         errorsMessages.push({
           field: error.path,
           message: error.msg
@@ -75,8 +75,8 @@ BlogsRouter.put('/:id',
     const validation = validationResult(req).array({onlyFirstError: true})
 
     if(validation.length){
-      const errorsMessages = []
-      validation.forEach(error => {
+      const errorsMessages: any = []
+      validation.forEach((error: any) => {
         errorsMessages.push({
           field: error.path,
           message: error.msg
