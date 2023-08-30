@@ -449,6 +449,10 @@ describe('/blogs', () => {
       .auth('admin', 'qwerty')
       .send(incorrectBody)
       .expect(400)
+
+    await request(app)
+      .delete(`/posts/${secondCreatedPost?.id}`)
+      .expect(401)
   })
 
 

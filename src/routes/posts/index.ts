@@ -48,6 +48,7 @@ postsRouter.post('/',
           field: error.path
         })
       })
+      console.log('eee', {errorsMessages})
       res.status(400).send({errorsMessages})
       return
     }
@@ -107,7 +108,9 @@ postsRouter.put('/:id',
     res.sendStatus(204)
   })
 
-postsRouter.delete('/:id', (req: RequestWithParams<{ id: string }>, res: Response) => {
+postsRouter.delete('/:id',
+  AuthMiddleware,
+  (req: RequestWithParams<{ id: string }>, res: Response) => {
   const {id} = req.params
   const isPostDeleted = postsRepository.deletePostById(id)
 
