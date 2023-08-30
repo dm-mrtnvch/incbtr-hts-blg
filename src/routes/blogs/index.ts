@@ -2,7 +2,7 @@ import {NextFunction, Request, Response, Router} from "express"
 import {body, checkSchema, query, Result, validationResult} from "express-validator";
 import {ValidationError} from "express-validator/src/base";
 import {RequestWithBody, RequestWithParams, RequestWithParamsAndBody} from "../../interfaces";
-import {blogsValidationMiddleware} from "../../middlewares/middlewares";
+import {AuthMiddleware, blogsValidationMiddleware} from "../../middlewares/middlewares";
 import {blogsRepository} from "../../repositories/blogs";
 
 
@@ -24,16 +24,6 @@ BlogsRouter.get('/:id', (req: RequestWithParams<{ id: string }>, res: Response) 
   }
 })
 
-const AuthMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const adminCredentials = 'YWRtaW46cXdlcnR5'
-
-  // is it necessary to check req.headers.authorization firstly
-  if(req.headers.authorization && req.headers.authorization === `Basic ${adminCredentials}`){
-    next()
-  } else {
-    res.sendStatus(401)
-  }
-};
 
 BlogsRouter.post('/',
   // trim before or after notEmpty

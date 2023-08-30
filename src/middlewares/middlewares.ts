@@ -1,36 +1,12 @@
-import {Schema} from "express-validator";
-import {urlPattern} from "../helpers/utils";
+import {NextFunction, Request, Response} from "express";
 
-export const blogsValidationMiddleware: Schema = {
-  name: {
-    in: ['body'],
-    exists: {
-      errorMessage: 'name is required'
-    },
-    trim: true,
-    notEmpty: {
-      errorMessage: 'field name can\'t be empty'
-    },
-    isLength: {
-      options: { min: 5,  max: 15}
-    }
-  },
-  description: {
-    in: ['body'],
-    trim: true,
-    notEmpty: {
-      errorMessage: 'field name can\'t be empty'
-    },
-    isLength: {
-      options: { min: 5,  max: 500}
-    }
-  },
-  websiteUrl: {
-    in: ['body'],
-    trim: true,
-    matches: {
-      options: urlPattern,
-      errorMessage: `websiteUrl field must matches the regular expression ${urlPattern}`
-    }
+export const AuthMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  const adminCredentials = 'YWRtaW46cXdlcnR5'
+
+  // is it necessary to check req.headers.authorization firstly
+  if(req.headers.authorization && req.headers.authorization === `Basic ${adminCredentials}`){
+    next()
+  } else {
+    res.sendStatus(401)
   }
-}
+};
