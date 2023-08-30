@@ -377,21 +377,31 @@ describe('/blogs', () => {
   })
 
 
-  it('should\'t create / update blog with incorrect body', async () => {
-    const incorrectTitle: Omit<IPost, 'id' | 'blogId' | 'blogName'> = {
+  it('should\'t create / update / delete  blog with incorrect data', async () => {
+    const incorrectTitle: Omit<IPost, 'id' | 'blogName'> = {
       title: '31-length_sdfsdfsdsdfdsfasjhfsf',
       content: 'some description',
-      shortDescription: 'short'
+      shortDescription: 'short',
+      blogId: thirdCreatedBlog.id
     }
-    const incorrectContent: Omit<IPost, 'id' | 'blogId' | 'blogName'> = {
+    const incorrectContent: Omit<IPost, 'id' | 'blogName'> = {
       title: 'ok title',
       content: '',
-      shortDescription: 'https://www.second-updated-example.com'
+      shortDescription: 'https://www.second-updated-example.com',
+      blogId: thirdCreatedBlog.id
     }
-    const incorrectShortDescription: Omit<IPost, 'id' | 'blogId' | 'blogName'> = {
+    const incorrectShortDescription: Omit<IPost, 'id' | 'blogName'> = {
       title: '16-length_sdfsdf',
       content: 'ok content',
-      shortDescription: ''
+      shortDescription: '',
+      blogId: thirdCreatedBlog.id
+    }
+
+    const incorrectBlogId: Omit<IPost, 'id' | 'blogName'> = {
+      title: 'ok title',
+      content: 'ok content',
+      shortDescription: 'short',
+      blogId: ''
     }
     const incorrectBody: any = []
 
@@ -426,11 +436,16 @@ describe('/blogs', () => {
       .expect(400)
 
     await request(app)
+      .post(`/posts`)
+      .auth('admin', 'qwerty')
+      .send(incorrectBlogId)
+      .expect(400)
+
+    await request(app)
       .put(`/posts/${secondCreatedPost?.id}`)
       .auth('admin', 'qwerty')
       .send(incorrectTitle)
       .expect(400)
-
 
     await request(app)
       .put(`/posts/${secondCreatedPost?.id}`)
@@ -451,10 +466,13 @@ describe('/blogs', () => {
       .expect(400)
 
     await request(app)
+      .put(`/posts/${secondCreatedPost?.id}`)
+      .auth('admin', 'qwerty')
+      .send(incorrectBlogId)
+      .expect(400)
+
+    await request(app)
       .delete(`/posts/${secondCreatedPost?.id}`)
       .expect(401)
   })
-
-
-
 })
