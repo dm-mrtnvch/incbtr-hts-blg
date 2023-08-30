@@ -27,10 +27,16 @@ postsRouter.get('/:id', (req: RequestWithParams<{ id: string }>, res: Response) 
 
 postsRouter.post('/',
   AuthMiddleware,
-  body('title').notEmpty().trim().isLength({max: 30}),
-  body('shortDescription').notEmpty().trim().isLength({max: 100}),
-  body('content').notEmpty().trim().isLength({max: 1000}),
-  body('blogId').trim().notEmpty(),
+  body('title').trim().notEmpty().isLength({max: 30}),
+  body('shortDescription').trim().notEmpty().isLength({max: 100}),
+  body('content').trim().notEmpty().isLength({max: 1000}),
+  body('blogId').trim().notEmpty().custom(async (blogId, { req }) => {
+    console.log('sdfsdf')
+    const blog = await blogsRepository.getBlogById(blogId);
+    if (!blog) {
+      throw new Error('Blog not found');
+    }
+  }).withMessage('Specified blog does not exist.'),
   (req: RequestWithBody<{
     title: string,
     shortDescription: string,
@@ -64,9 +70,9 @@ postsRouter.post('/',
 
 postsRouter.put('/:id',
   AuthMiddleware,
-  body('title').notEmpty().trim().isLength({max: 30}),
-  body('shortDescription').notEmpty().trim().isLength({max: 100}),
-  body('content').notEmpty().trim().isLength({max: 1000}),
+  body('title').trim().notEmpty().isLength({max: 30}),
+  body('shortDescription').trim().notEmpty().isLength({max: 100}),
+  body('content').trim().notEmpty().isLength({max: 1000}),
   body('blogId').trim().notEmpty().custom(async (blogId, { req }) => {
     console.log('sdfsdf')
     const blog = await blogsRepository.getBlogById(blogId);
