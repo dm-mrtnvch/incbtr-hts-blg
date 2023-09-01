@@ -3,7 +3,9 @@
 
 # Dependency directories and files
 node_modules/
+.env
 .tool-versions
 
 # Folders
 /dist
+

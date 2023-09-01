@@ -8,14 +8,14 @@ import {blogsRepository} from "../../repositories/blogs";
 
 export const BlogsRouter = Router()
 
-BlogsRouter.get('/', (req: Request, res: Response) => {
-  const blogs = blogsRepository.getAllBlogs()
+BlogsRouter.get('/', async (req: Request, res: Response) => {
+  const blogs =  await blogsRepository.getAllBlogs()
   res.send(blogs)
 })
 
-BlogsRouter.get('/:id', (req: RequestWithParams<{ id: string }>, res: Response) => {
+BlogsRouter.get('/:id', async (req: RequestWithParams<{ id: string }>, res: Response) => {
   const {id} = req.params
-  const blog = blogsRepository.getBlogById(id)
+  const blog =  await blogsRepository.getBlogById(id)
 
   if (blog) {
     res.send(blog)
@@ -26,21 +26,14 @@ BlogsRouter.get('/:id', (req: RequestWithParams<{ id: string }>, res: Response) 
 
 
 BlogsRouter.post('/',
-  /// trim before or after notEmpty
   AuthMiddleware,
   body('name').trim().notEmpty().isLength({max: 15}),
   body('description').trim().notEmpty().isLength({max: 500}),
-  /// is notEmpty() necessary if use isLength() ?
   body('websiteUrl').trim().notEmpty().isLength({max: 100}).matches('^https://([a-zA-Z0-9_-]+\\.)+[a-zA-Z0-9_-]+(\\/[a-zA-Z0-9_-]+)*\\/?$').withMessage('Incorrect websiteUrl field'),
-  (req: RequestWithBody<{ name: string, description: string, websiteUrl: string }>, res: Response) => {
+  async (req: RequestWithBody<{ name: string, description: string, websiteUrl: string }>, res: Response) => {
     const {name, description, websiteUrl} = req.body
 
-    /// if add .array({onlyFirstError: true}) => no formatter in response
     const validation = validationResult(req).array({onlyFirstError: true})
-
-    /// why validation.isEmpty (not validation.errors.isEmpty)
-    /// !validation.errors.isEmpty() = TS2341: Property 'errors' is private and only accessible within class 'Result '.
-    /// types for errorsMessages ?
 
     if (validation.length) {
       const errorsMessages: any = []
@@ -55,7 +48,8 @@ BlogsRouter.post('/',
       return
     }
 
-    const newBlog = blogsRepository.createBlog(name, description, websiteUrl)
+    const newBlog = await blogsRepository.createBlog(name, description, websiteUrl)
+
     res.status(201).send(newBlog)
   })
 

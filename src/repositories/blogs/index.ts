@@ -1,24 +1,38 @@
+import {ObjectId} from "mongodb";
+import {blogsCollection} from "../../db/db";
 import {blogsDb} from "../../db/mock_data";
 import {IBlog} from "../../interfaces";
-
+import { v4 as uuidv4 } from 'uuid';
 
 export const blogsRepository = {
   getAllBlogs() {
-    return blogsDb
+    return blogsCollection.find({}).toArray()
+    // return blogsDb
   },
-  getBlogById(id: string): IBlog | undefined {
-    return blogsDb.find(blog => blog.id === id)
+  getBlogById(id: string): any{
+
+    return blogsCollection.findOne({id})
+    // return blogsDb.find(blog => blog.id === id)
   },
-  createBlog(name: string, description: string, websiteUrl: string){
-    const id = String(+new Date())
-    const newBlog: IBlog = {
-      id,
+  async createBlog(name: string, description: string, websiteUrl: string) {
+    const newBlog: any = {
+      id: uuidv4(),
       name,
       description,
-      websiteUrl
+      websiteUrl,
+      createdAt: new Date().toISOString(),
+      isMembership: true // is this field for roles in future?
     }
 
-    blogsDb.push(newBlog)
+    await blogsCollection.insertOne({...newBlog})
+
+    // res {
+    //   acknowledged: true,
+    //     insertedId: new ObjectId("64f318ae03642478147e8360")
+    // }
+
+    // const {_id, ...newBlogToReturn} = newBlog
+
     return newBlog
   },
   updateBlogById(id: string, name: string, description: string, websiteUrl: string): boolean {

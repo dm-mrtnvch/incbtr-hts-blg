@@ -8,6 +8,8 @@ export interface IBlog extends IUnique {
   name: string
   description: string
   websiteUrl: string
+  createdAt: string
+  isMembership: boolean
 }
 
 export interface IPost extends IUnique {

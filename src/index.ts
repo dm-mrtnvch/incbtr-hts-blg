@@ -1,4 +1,5 @@
 import express, {Request, Response} from 'express'
+import {runDb} from "./db/db";
 import {blogsDb, postsDb} from "./db/mock_data";
 import {BlogsRouter} from "./routes/blogs";
 import {postsRouter} from "./routes/posts";
@@ -18,7 +19,18 @@ app.delete('/testing/all-data', (req: Request, res: Response) => {
 app.use('/blogs', BlogsRouter)
 app.use('/posts', postsRouter)
 
-app.listen(port, () => {
-  console.log(`app running on ${port} port`)
-})
 
+
+// app.listen(port, () => {
+//   console.log(`app running on ${port} port`)
+// })
+
+const startApp = async () => {
+  await runDb()
+
+  app.listen(port, () => {
+    console.log(`app running on ${port} port`)
+  })
+}
+
+startApp()
