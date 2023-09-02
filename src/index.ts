@@ -11,8 +11,8 @@ const port = process.env.PORT || 3020
 console.log('4444')
 
 app.delete('/testing/all-data', async (req: Request, res: Response) => {
-  await blogsCollection.drop()
-  await postsCollection.drop()
+  await blogsCollection.deleteMany({})
+  await postsCollection.deleteMany({})
   res.sendStatus(204)
 })
 
