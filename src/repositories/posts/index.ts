@@ -10,7 +10,7 @@ export const postsRepository = {
     return postsCollection.find({}, {projection: {_id: 0}}).toArray()
   },
   async getPostById(id: string): Promise<IPost | null> {
-    return postsCollection.findOne({id})
+    return postsCollection.findOne({id}, {projection: {_id: 0}})
   },
   async createPost(title: string, shortDescription: string, content: string, blogId: string) {
     const blog = await blogsCollection.findOne({id: blogId}, {projection: {_id: 0}})
@@ -22,7 +22,8 @@ export const postsRepository = {
         content,
         shortDescription,
         blogId,
-        blogName: blog.name
+        blogName: blog.name,
+        createdAt: new Date().toISOString()
       }
 
       await postsCollection.insertOne({...newPost})
