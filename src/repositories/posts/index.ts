@@ -7,13 +7,13 @@ import { v4 as uuidv4 } from 'uuid';
 export const postsRepository = {
   async getAllPosts(): Promise<IPost[]> {
     // no await because of await in router
-    return postsCollection.find({}).toArray()
+    return postsCollection.find({}, {projection: {_id: 0}}).toArray()
   },
   async getPostById(id: string): Promise<IPost | null> {
     return postsCollection.findOne({id})
   },
   async createPost(title: string, shortDescription: string, content: string, blogId: string) {
-    const blog = await blogsCollection.findOne({id: blogId})
+    const blog = await blogsCollection.findOne({id: blogId}, {projection: {_id: 0}})
 
     if (blog) {
       const newPost = {
@@ -25,7 +25,11 @@ export const postsRepository = {
         blogName: blog.name
       }
 
-      return newPost
+      await postsCollection.insertOne({...newPost})
+
+      return {
+        ...newPost
+      }
     } else {
       return false
     }

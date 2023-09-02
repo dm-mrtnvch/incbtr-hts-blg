@@ -1,5 +1,5 @@
 import express, {Request, Response} from 'express'
-import {runDb} from "./db/db";
+import {blogsCollection, postsCollection, runDb} from "./db/db";
 import {blogsDb, postsDb} from "./db/mock_data";
 import {BlogsRouter} from "./routes/blogs";
 import {postsRouter} from "./routes/posts";
@@ -10,9 +10,9 @@ const port = process.env.PORT || 3020
 
 console.log('4444')
 
-app.delete('/testing/all-data', (req: Request, res: Response) => {
-  blogsDb.length = 0
-  postsDb.length = 0
+app.delete('/testing/all-data', async (req: Request, res: Response) => {
+  await blogsCollection.drop()
+  await postsCollection.drop()
   res.sendStatus(204)
 })
 

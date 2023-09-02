@@ -16,13 +16,12 @@ export const blogsRepository = {
       description,
       websiteUrl,
       createdAt: new Date().toISOString(),
-      isMembership: true
+      isMembership: false
     }
-    // insertOne mutate the object
-    const response = await blogsCollection.insertOne({...newBlog})
+    // insertOne mutates the object
+   await blogsCollection.insertOne({...newBlog})
 
     return {
-      id: response.insertedId,
       ...newBlog
     }
   },

@@ -10,8 +10,8 @@ import {postsRepository} from "../../repositories/posts";
 
 export const postsRouter = Router()
 
-postsRouter.get('/', (req: Request, res: Response) => {
-  const posts = postsRepository.getAllPosts()
+postsRouter.get('/', async (req: Request, res: Response) => {
+  const posts = await postsRepository.getAllPosts()
   res.send(posts)
 })
 
