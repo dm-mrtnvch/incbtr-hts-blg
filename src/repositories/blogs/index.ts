@@ -1,18 +1,13 @@
-import {ObjectId} from "mongodb";
+import {v4 as uuidv4} from 'uuid';
 import {blogsCollection} from "../../db/db";
-import {blogsDb} from "../../db/mock_data";
 import {IBlog} from "../../interfaces";
-import { v4 as uuidv4 } from 'uuid';
 
 export const blogsRepository = {
-  getAllBlogs() {
-    return blogsCollection.find({}).toArray()
-    // return blogsDb
+  async getAllBlogs(): Promise<IBlog[]> {
+    return blogsCollection.find({}, {projection: {_id: 0}}).toArray()
   },
-  getBlogById(id: string): any{
-
-    return blogsCollection.findOne({id})
-    // return blogsDb.find(blog => blog.id === id)
+  async getBlogById(id: string): Promise<IBlog | null>{
+    return blogsCollection.findOne({id}, {projection: {_id: 0}})
   },
   async createBlog(name: string, description: string, websiteUrl: string) {
     const newBlog: any = {
@@ -21,49 +16,30 @@ export const blogsRepository = {
       description,
       websiteUrl,
       createdAt: new Date().toISOString(),
-      isMembership: true // is this field for roles in future?
+      isMembership: true
     }
+    // insertOne mutate the object
+    const response = await blogsCollection.insertOne({...newBlog})
 
-    await blogsCollection.insertOne({...newBlog})
-
-    // res {
-    //   acknowledged: true,
-    //     insertedId: new ObjectId("64f318ae03642478147e8360")
-    // }
-
-    // const {_id, ...newBlogToReturn} = newBlog
-
-    return newBlog
+    return {
+      id: response.insertedId,
+      ...newBlog
+    }
   },
-  updateBlogById(id: string, name: string, description: string, websiteUrl: string): boolean {
-    const blogToUpdate = blogsDb.find(blog => blog.id === id)
-
-    if(blogToUpdate) {
-      const updatedBlog = {
-        id,
-        name: name ?? blogToUpdate.name,
-        description: description ?? blogToUpdate.description ,
-        websiteUrl: websiteUrl ?? blogToUpdate.websiteUrl
+  async updateBlogById(id: string, name: string, description: string, websiteUrl: string): Promise<boolean> {
+   const response = await blogsCollection.updateOne({id}, {
+      $set: {
+        name,
+        description,
+        websiteUrl
       }
-      Object.assign(blogToUpdate, updatedBlog)
+    })
 
-    }
-    return Boolean(blogToUpdate)
+    return !!response.modifiedCount
   },
-  deleteBlogById(id: string){
-    const blogIndexToDelete = blogsDb.findIndex(blog => blog.id === id)
-    const blogLengthBeforeUpdate = blogsDb.length
+  async deleteBlogById(id: string): Promise<boolean> {
+    const response = await blogsCollection.deleteOne({id})
 
-    if(blogIndexToDelete === -1){
-      return false
-    } else {
-      blogsDb.splice(blogIndexToDelete, 1)
-      const blogLengthAfterUpdate = blogsDb.length
-      // is it necessary check for deleting
-      // or use this check
-      // return this.getBlogById(id)
-
-      return blogLengthBeforeUpdate - blogLengthAfterUpdate === 1
-    }
+    return !!response.deletedCount
   }
 }

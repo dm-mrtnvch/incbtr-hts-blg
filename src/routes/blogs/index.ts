@@ -1,6 +1,5 @@
-import {NextFunction, Request, Response, Router} from "express"
-import {body, checkSchema, query, Result, validationResult} from "express-validator";
-import {ValidationError} from "express-validator/src/base";
+import {Request, Response, Router} from "express"
+import {body, validationResult} from "express-validator";
 import {RequestWithBody, RequestWithParams, RequestWithParamsAndBody} from "../../interfaces";
 import {AuthMiddleware} from "../../middlewares/middlewares";
 import {blogsRepository} from "../../repositories/blogs";
@@ -9,13 +8,13 @@ import {blogsRepository} from "../../repositories/blogs";
 export const BlogsRouter = Router()
 
 BlogsRouter.get('/', async (req: Request, res: Response) => {
-  const blogs =  await blogsRepository.getAllBlogs()
+  const blogs = await blogsRepository.getAllBlogs()
   res.send(blogs)
 })
 
 BlogsRouter.get('/:id', async (req: RequestWithParams<{ id: string }>, res: Response) => {
   const {id} = req.params
-  const blog =  await blogsRepository.getBlogById(id)
+  const blog = await blogsRepository.getBlogById(id)
 
   if (blog) {
     res.send(blog)
@@ -58,7 +57,7 @@ BlogsRouter.put('/:id',
   body('name').trim().notEmpty().isLength({max: 15}),
   body('description').trim().notEmpty().isLength({max: 500}),
   body('websiteUrl').trim().notEmpty().isLength({max: 100}).matches('^https://([a-zA-Z0-9_-]+\\.)+[a-zA-Z0-9_-]+(\\/[a-zA-Z0-9_-]+)*\\/?$').withMessage('Incorrect websiteUrl field'),
-  (req: RequestWithParamsAndBody<{ id: string }, {
+  async (req: RequestWithParamsAndBody<{ id: string }, {
     name: string,
     description: string,
     websiteUrl: string
@@ -68,7 +67,7 @@ BlogsRouter.put('/:id',
 
     const validation = validationResult(req).array({onlyFirstError: true})
 
-    if(validation.length){
+    if (validation.length) {
       const errorsMessages: any = []
       validation.forEach((error: any) => {
         errorsMessages.push({
@@ -81,7 +80,7 @@ BlogsRouter.put('/:id',
       return
     }
 
-    const isBlogUpdated = blogsRepository.updateBlogById(id, name, description, websiteUrl)
+    const isBlogUpdated = await blogsRepository.updateBlogById(id, name, description, websiteUrl)
 
     if (isBlogUpdated) {
       res.sendStatus(204)
@@ -92,14 +91,14 @@ BlogsRouter.put('/:id',
 
 BlogsRouter.delete('/:id',
   AuthMiddleware,
-  (req: RequestWithParams<{ id: string }>, res: Response) => {
-  const {id} = req.params
+  async (req: RequestWithParams<{ id: string }>, res: Response) => {
+    const {id} = req.params
 
-  const isBlogDeleted = blogsRepository.deleteBlogById(id)
+    const isBlogDeleted = await blogsRepository.deleteBlogById(id)
 
-  if (isBlogDeleted) {
-    res.sendStatus(204)
-  } else {
-    res.sendStatus(404)
-  }
-})
+    if (isBlogDeleted) {
+      res.sendStatus(204)
+    } else {
+      res.sendStatus(404)
+    }
+  })

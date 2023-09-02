@@ -1,5 +1,6 @@
-import {Request, Response, Router} from "express";
-import {body, validationResult} from "express-validator";
+import {raw, Request, Response, Router} from "express";
+import {body, param, validationResult} from "express-validator";
+import {ObjectId, UUID} from "mongodb";
 import {updateOutput} from "ts-jest/dist/legacy/compiler/compiler-utils";
 import {IPost, RequestWithBody, RequestWithParams, RequestWithParamsAndBody} from "../../interfaces";
 import {AuthMiddleware} from "../../middlewares/middlewares";
@@ -14,10 +15,10 @@ postsRouter.get('/', (req: Request, res: Response) => {
   res.send(posts)
 })
 
-postsRouter.get('/:id', (req: RequestWithParams<{ id: string }>, res: Response) => {
+postsRouter.get('/:id', async (req: RequestWithParams<{ id: string }>, res: Response) => {
   const {id} = req.params
-  const post = postsRepository.getPostById(id)
-  console.log('post', post)
+  const post = await postsRepository.getPostById(id)
+
   if (post) {
     res.send(post)
   } else {
@@ -37,7 +38,8 @@ postsRouter.post('/',
       throw new Error('Blog not found');
     }
   }).withMessage('Specified blog does not exist.'),
-  (req: RequestWithBody<{
+  param('blogId').customSanitizer(value => new UUID(value)),
+  async (req: RequestWithBody<{
     title: string,
     shortDescription: string,
     content: string,
@@ -60,7 +62,7 @@ postsRouter.post('/',
       return
     }
 
-    const newPost = postsRepository.createPost(title, shortDescription, content, blogId)
+    const newPost = await postsRepository.createPost(title, shortDescription, content, blogId)
     if (newPost) {
       res.status(201).send(newPost)
     } else {
@@ -74,14 +76,13 @@ postsRouter.put('/:id',
   body('shortDescription').trim().notEmpty().isLength({max: 100}),
   body('content').trim().notEmpty().isLength({max: 1000}),
   body('blogId').trim().notEmpty().custom(async (blogId, { req }) => {
-    console.log('sdfsdf')
     const blog = await blogsRepository.getBlogById(blogId);
     if (!blog) {
       throw new Error('Blog not found');
     }
   }).withMessage('Specified blog does not exist.'),
 
-  (req: RequestWithParamsAndBody<{ id: string }, {
+  async (req: RequestWithParamsAndBody<{ id: string }, {
     title: string,
     shortDescription: string,
     content: string,
@@ -91,7 +92,6 @@ postsRouter.put('/:id',
     const {title, blogId, content, shortDescription} = req.body
     const post = postsRepository.getPostById(id)
 
-    console.log('sdfsdf')
 
     const errors = validationResult(req).array({onlyFirstError: true})
 
@@ -113,24 +113,18 @@ postsRouter.put('/:id',
       return
     }
 
-    const updatedPost: IPost = {
-      id: post.id,
-      title,
-      blogId,
-      content,
-      shortDescription,
-      blogName: post.blogName
-    }
-    Object.assign(post, updatedPost)
 
-    res.sendStatus(204)
+    const isUpdated = await postsRepository.updatePostById(id, title, shortDescription, content, blogId)
+    if (isUpdated) {
+      res.sendStatus(204)
+    }
   })
 
 postsRouter.delete('/:id',
   AuthMiddleware,
-  (req: RequestWithParams<{ id: string }>, res: Response) => {
+  async (req: RequestWithParams<{ id: string }>, res: Response) => {
   const {id} = req.params
-  const isPostDeleted = postsRepository.deletePostById(id)
+  const isPostDeleted = await postsRepository.deletePostById(id)
 
   if (isPostDeleted) {
     res.sendStatus(204)

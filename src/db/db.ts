@@ -1,6 +1,7 @@
-import {MongoClient} from "mongodb"
+import {randomUUID} from "crypto";
+import {MongoClient, UUID} from "mongodb"
 import * as dotenv from 'dotenv'
-import {IBlog} from "../interfaces";
+import {IBlog, IPost} from "../interfaces";
 dotenv.config()
 
 const url = process.env.MONGO_URL
@@ -10,6 +11,7 @@ if(!url){
 const client = new MongoClient(url)
 
 export const blogsCollection = client.db().collection<IBlog>('blogs')
+export const postsCollection = client.db().collection<IPost>('posts')
 
 export const runDb = async () => {
   try {

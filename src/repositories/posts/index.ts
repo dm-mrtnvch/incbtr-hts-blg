@@ -1,20 +1,23 @@
+import {blogsCollection, postsCollection} from "../../db/db";
 import {blogsDb, postsDb} from "../../db/mock_data";
 import {IPost} from "../../interfaces";
 import {blogsRepository} from "../blogs";
+import { v4 as uuidv4 } from 'uuid';
 
 export const postsRepository = {
-  getAllPosts(): IPost[] {
-    return postsDb
+  async getAllPosts(): Promise<IPost[]> {
+    // no await because of await in router
+    return postsCollection.find({}).toArray()
   },
-  getPostById(id: string): IPost | undefined {
-    return postsDb.find(post => post.id === id)
+  async getPostById(id: string): Promise<IPost | null> {
+    return postsCollection.findOne({id})
   },
-  createPost(title: string, shortDescription: string, content: string, blogId: string){
-    const blog = blogsRepository.getBlogById(blogId)
+  async createPost(title: string, shortDescription: string, content: string, blogId: string) {
+    const blog = await blogsCollection.findOne({id: blogId})
 
-    if(blog) {
+    if (blog) {
       const newPost = {
-        id: String(+new Date()),
+        id: uuidv4(),
         title,
         content,
         shortDescription,
@@ -22,20 +25,26 @@ export const postsRepository = {
         blogName: blog.name
       }
 
-      postsDb.push(newPost)
       return newPost
     } else {
       return false
     }
   },
-  deletePostById(id: string) {
-    const postIndexToDelete = postsDb.findIndex(post => post.id === id)
+  async updatePostById(id: string, title: string, shortDescription: string, content: string, blogId: string): Promise<boolean> {
+    const response = await postsCollection.updateOne({blogId}, {
+      $set: {
+        blogId,
+        title,
+        shortDescription,
+        content
+      }
+    })
 
-    if(postIndexToDelete === -1){
-      return false
-    } else {
-      postsDb.splice(postIndexToDelete, 1)
-      return true
-    }
+    return !!response.modifiedCount
+  },
+
+  async deletePostById(id: string): Promise<boolean> {
+    const result = await postsCollection.deleteOne({id})
+    return !!result.deletedCount
   }
 }

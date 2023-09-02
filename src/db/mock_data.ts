@@ -1,18 +1,18 @@
 import {IBlog, IPost} from "../interfaces";
 
 export const blogsDb: IBlog[] = [
-  {
-    id: '1',
-    name: 'first blog',
-    description: 'first description',
-    websiteUrl: 'www.example.com'
-  },
-  {
-    id: '2',
-    name: 'second blog',
-    description: 'second  description',
-    websiteUrl: 'www.example-two.com'
-  },
+  // {
+  //   id: '1',
+  //   name: 'first blog',
+  //   description: 'first description',
+  //   websiteUrl: 'www.example.com'
+  // },
+  // {
+  //   id: '2',
+  //   name: 'second blog',
+  //   description: 'second  description',
+  //   websiteUrl: 'www.example-two.com'
+  // },
 ]
 
 
