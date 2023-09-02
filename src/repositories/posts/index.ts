@@ -45,7 +45,8 @@ export const postsRepository = {
       }
     })
 
-    return !!response.modifiedCount
+    /// matchedCount isn't ok
+    return !!response.modifiedCount || !!response.matchedCount
   },
 
   async deletePostById(id: string): Promise<boolean> {

@@ -90,8 +90,14 @@ postsRouter.put('/:id',
   }>, res: Response) => {
     const {id} = req.params
     const {title, blogId, content, shortDescription} = req.body
-    const post = postsRepository.getPostById(id)
 
+    /// is it repository logic to check post?
+    const post = await postsRepository.getPostById(id)
+
+    if (!post) {
+      res.sendStatus(404)
+      return
+    }
 
     const errors = validationResult(req).array({onlyFirstError: true})
 
@@ -108,15 +114,11 @@ postsRouter.put('/:id',
       return
     }
 
-    if (!post) {
-      res.sendStatus(404)
-      return
-    }
-
-
     const isUpdated = await postsRepository.updatePostById(id, title, shortDescription, content, blogId)
     if (isUpdated) {
       res.sendStatus(204)
+    } else {
+      res.sendStatus(404)
     }
   })
 

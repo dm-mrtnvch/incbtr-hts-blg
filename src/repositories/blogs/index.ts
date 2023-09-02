@@ -26,6 +26,11 @@ export const blogsRepository = {
     }
   },
   async updateBlogById(id: string, name: string, description: string, websiteUrl: string): Promise<boolean> {
+    const isBlogExist = await blogsCollection.findOne({id})
+    if(!isBlogExist) {
+      return false
+    }
+
    const response = await blogsCollection.updateOne({id}, {
       $set: {
         name,
