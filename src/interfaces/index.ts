@@ -18,8 +18,10 @@ export interface IPost extends IUnique {
   content: string
   blogId: string
   blogName: string
+  createdAt: string
 }
 
 export type RequestWithParams<P>  = Request<P, {}, {}, {}>
 export type RequestWithBody<B> = Request<{}, {}, B, {}>
 export type RequestWithParamsAndBody<P, B> = Request<P, {}, B, {}>
+export type RequestWithParamsAndQuery<P, Q> = Request<P, {}, {}, Q>

@@ -1,6 +1,12 @@
-import {Request, Response, Router} from "express"
+import {raw, Request, Response, Router} from "express"
 import {body, validationResult} from "express-validator";
-import {RequestWithBody, RequestWithParams, RequestWithParamsAndBody} from "../../interfaces";
+import {blogsCollection} from "../../db/db";
+import {
+  RequestWithBody,
+  RequestWithParams,
+  RequestWithParamsAndBody,
+  RequestWithParamsAndQuery
+} from "../../interfaces";
 import {AuthMiddleware} from "../../middlewares/middlewares";
 import {blogsRepository} from "../../repositories/blogs";
 
@@ -23,6 +29,34 @@ BlogsRouter.get('/:id', async (req: RequestWithParams<{ id: string }>, res: Resp
   }
 })
 
+BlogsRouter.get('/:blogId/posts',
+  async (req: RequestWithParamsAndQuery<{blogId: string}, {
+    page: string, pageNumber: string, pagesCount: string, pageSize: string, sortBy: string, sortDirection: string
+  }>, res: Response) => {
+    const { blogId } = req.params
+    const { page, pageNumber, pagesCount, pageSize, sortBy, sortDirection } = req.query
+
+    const isBlogExist = await blogsCollection.findOne({id: blogId})
+    if (!isBlogExist) {
+      res.sendStatus(404)
+      return
+    }
+    console.log('req.params', req.params)
+
+    const pageNum = Number(pageNumber)
+    const pageSz = Number(pageSize)
+    const pgCnt = Number(pagesCount)
+    const blogPosts = await blogsRepository.getBlogPostsById(
+      blogId,
+      pageNum,
+      pageSz,
+      sortBy,
+      sortDirection,
+      pgCnt,
+      page
+    )
+    res.send(blogPosts)
+  })
 
 BlogsRouter.post('/',
   AuthMiddleware,
@@ -50,6 +84,46 @@ BlogsRouter.post('/',
     const newBlog = await blogsRepository.createBlog(name, description, websiteUrl)
 
     res.status(201).send(newBlog)
+  })
+
+BlogsRouter.post('/:blogId/posts',
+  AuthMiddleware,
+  body('title').trim().notEmpty().isLength({max: 30}),
+  body('shortDescription').trim().notEmpty().isLength({max: 100}),
+  body('content').trim().notEmpty().isLength({max: 1000}),
+  async (req: RequestWithParamsAndBody<{ blogId: string }, {
+    title: string,
+    shortDescription: string,
+    content: string
+  }>, res: Response) => {
+    const {blogId} = req.params
+    const {title, shortDescription, content} = req.body
+    const isBlogExist = blogsRepository.getBlogById(blogId)
+
+    const validation = validationResult(req).array({onlyFirstError: true})
+
+    if (validation.length) {
+      const errorsMessages: any = []
+      validation.forEach((error: any) => {
+        errorsMessages.push({
+          field: error.path,
+          message: error.msg
+        })
+      })
+
+      res.status(400).send({errorsMessages})
+      return
+    }
+
+    if (!isBlogExist) {
+      res.sendStatus(404)
+      return
+    }
+
+
+    const newBlogPost = await blogsRepository.createBlogPost(title, shortDescription, content, blogId)
+    res.status(201).send(newBlogPost)
+
   })
 
 BlogsRouter.put('/:id',
