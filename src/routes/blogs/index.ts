@@ -42,7 +42,6 @@ BlogsRouter.get('/:blogId/posts',
       res.sendStatus(404)
       return
     }
-    console.log('req.params', req.params)
 
     const blogPosts = await blogsRepository.getBlogPostsById(
       blogId,

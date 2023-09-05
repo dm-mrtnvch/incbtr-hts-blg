@@ -32,7 +32,6 @@ postsRouter.post('/',
   body('shortDescription').trim().notEmpty().isLength({max: 100}),
   body('content').trim().notEmpty().isLength({max: 1000}),
   body('blogId').trim().notEmpty().custom(async (blogId, { req }) => {
-    console.log('sdfsdf')
     const blog = await blogsRepository.getBlogById(blogId);
     if (!blog) {
       throw new Error('Blog not found');
