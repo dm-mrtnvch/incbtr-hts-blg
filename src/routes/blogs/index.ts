@@ -37,13 +37,14 @@ BlogsRouter.get('/:blogId/posts',
     const { blogId } = req.params
     const { page, pageNumber, pagesCount, pageSize, sortBy, sortDirection } = req.query
 
+    // is it possible to trigger repository layer from router
     const isBlogExist = await blogsCollection.findOne({id: blogId})
     if (!isBlogExist) {
       res.sendStatus(404)
       return
     }
 
-    const blogPosts = await blogsRepository.getBlogPostsById(
+    const blogPosts = await blogsService.getBlogPostsById(
       blogId,
       Number(pageNumber),
       Number(pageSize),
@@ -118,7 +119,7 @@ BlogsRouter.post('/:blogId/posts',
     }
 
 
-    const newBlogPost = await blogsRepository.createBlogPost(title, shortDescription, content, blogId)
+    const newBlogPost = await blogsService.createBlogPost(title, shortDescription, content, blogId)
     res.status(201).send(newBlogPost)
 
   })
@@ -151,7 +152,7 @@ BlogsRouter.put('/:id',
       return
     }
 
-    const isBlogUpdated = await blogsRepository.updateBlogById(id, name, description, websiteUrl)
+    const isBlogUpdated = await blogsService.updateBlogById(id, name, description, websiteUrl)
 
     if (isBlogUpdated) {
       res.sendStatus(204)
@@ -165,7 +166,7 @@ BlogsRouter.delete('/:id',
   async (req: RequestWithParams<{ id: string }>, res: Response) => {
     const {id} = req.params
 
-    const isBlogDeleted = await blogsRepository.deleteBlogById(id)
+    const isBlogDeleted = await blogsService.deleteBlogById(id)
 
     if (isBlogDeleted) {
       res.sendStatus(204)

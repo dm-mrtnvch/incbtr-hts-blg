@@ -16,7 +16,7 @@ export const blogsDb: IBlog[] = [
 ]
 
 
-export const postsDb: IPost[] = [
+export const postsDb: any[] = [
   {
     id: '7',
     title: '777',
