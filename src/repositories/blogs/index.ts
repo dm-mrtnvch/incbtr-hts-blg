@@ -8,7 +8,7 @@ export const blogsRepository = {
   async getAllBlogs(): Promise<IBlog[]> {
     return blogsCollection.find({}, {projection: {_id: 0}}).toArray()
   },
-  async getBlogById(id: string): Promise<IBlog | null>{
+  async getBlogById(id: string): Promise<IBlog | null> {
     return blogsCollection.findOne({id}, {projection: {_id: 0}})
   },
   async getBlogPostsById(
@@ -19,7 +19,7 @@ export const blogsRepository = {
     sortDirection: string = 'asc',
     pagesCount: number,
     page: number = 1
-  ){
+  ) {
 
     const skipCount = (page - 1) * pageSize
     const postsFindOptions: FindOptions = {
@@ -43,21 +43,11 @@ export const blogsRepository = {
 
   },
 
-  async createBlog(name: string, description: string, websiteUrl: string) {
-    const newBlog: any = {
-      id: uuidv4(),
-      name,
-      description,
-      websiteUrl,
-      createdAt: new Date().toISOString(),
-      isMembership: false
-    }
+  async createBlog(newBlog: IBlog): Promise<IBlog> {
     // insertOne mutates the object
-   await blogsCollection.insertOne({...newBlog})
+    await blogsCollection.insertOne(newBlog)
 
-    return {
-      ...newBlog
-    }
+    return newBlog
   },
 
   async createBlogPost(title: string, shortDescription: string, content: string, blogId: string) {
@@ -78,11 +68,11 @@ export const blogsRepository = {
   },
   async updateBlogById(id: string, name: string, description: string, websiteUrl: string): Promise<boolean> {
     const isBlogExist = await blogsCollection.findOne({id})
-    if(!isBlogExist) {
+    if (!isBlogExist) {
       return false
     }
 
-   const response = await blogsCollection.updateOne({id}, {
+    const response = await blogsCollection.updateOne({id}, {
       $set: {
         name,
         description,

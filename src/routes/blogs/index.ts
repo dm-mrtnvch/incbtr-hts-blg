@@ -1,6 +1,7 @@
 import {raw, Request, Response, Router} from "express"
 import {body, validationResult} from "express-validator";
 import {blogsCollection} from "../../db/db";
+import {blogsService} from "../../domain/blogs.service";
 import {
   RequestWithBody,
   RequestWithParams,
@@ -14,13 +15,13 @@ import {blogsRepository} from "../../repositories/blogs";
 export const BlogsRouter = Router()
 
 BlogsRouter.get('/', async (req: Request, res: Response) => {
-  const blogs = await blogsRepository.getAllBlogs()
+  const blogs = await blogsService.getAllBlogs()
   res.send(blogs)
 })
 
 BlogsRouter.get('/:id', async (req: RequestWithParams<{ id: string }>, res: Response) => {
   const {id} = req.params
-  const blog = await blogsRepository.getBlogById(id)
+  const blog = await blogsService.getBlogById(id)
 
   if (blog) {
     res.send(blog)
@@ -43,17 +44,14 @@ BlogsRouter.get('/:blogId/posts',
     }
     console.log('req.params', req.params)
 
-    const pageNum = Number(pageNumber)
-    const pageSz = Number(pageSize)
-    const pgCnt = Number(pagesCount)
     const blogPosts = await blogsRepository.getBlogPostsById(
       blogId,
-      pageNum,
-      pageSz,
+      Number(pageNumber),
+      Number(pageSize),
       sortBy,
       sortDirection,
-      pgCnt,
-      page
+      Number(pagesCount),
+      Number(page)
     )
     res.send(blogPosts)
   })
@@ -81,7 +79,7 @@ BlogsRouter.post('/',
       return
     }
 
-    const newBlog = await blogsRepository.createBlog(name, description, websiteUrl)
+    const newBlog = await blogsService.createBlog(name, description, websiteUrl)
 
     res.status(201).send(newBlog)
   })
