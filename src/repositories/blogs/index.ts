@@ -1,12 +1,12 @@
-import {FindOptions} from "mongodb";
+import {Filter, FindOptions} from "mongodb";
 import {v4 as uuidv4} from 'uuid';
 import {blogsCollection, postsCollection} from "../../db/db";
 import {IBlog, IPost} from "../../interfaces";
 import {postsRepository} from "../posts";
 
 export const blogsRepository = {
-  async getAllBlogs(): Promise<IBlog[]> {
-    return blogsCollection.find({}, {projection: {_id: 0}}).toArray()
+  async getAllBlogs(filterOptions: any, blogsFindOptions: FindOptions): Promise<IBlog[]> {
+    return blogsCollection.find(filterOptions, blogsFindOptions).toArray()
   },
   async getBlogById(id: string): Promise<IBlog | null> {
     return blogsCollection.findOne({id}, {projection: {_id: 0}})

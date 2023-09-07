@@ -6,7 +6,7 @@ import {
   RequestWithBody,
   RequestWithParams,
   RequestWithParamsAndBody,
-  RequestWithParamsAndQuery
+  RequestWithParamsAndQuery, RequestWithQuery
 } from "../../interfaces";
 import {AuthMiddleware} from "../../middlewares/middlewares";
 import {blogsRepository} from "../../repositories/blogs";
@@ -14,8 +14,18 @@ import {blogsRepository} from "../../repositories/blogs";
 
 export const BlogsRouter = Router()
 
-BlogsRouter.get('/', async (req: Request, res: Response) => {
-  const blogs = await blogsService.getAllBlogs()
+BlogsRouter.get('/', async (req: RequestWithQuery<{
+  // useless typization in req.query
+  searchNameTerm: string,
+  sortBy: string,
+  sortDirection: string,
+  pageNumber: string,
+  pageSize: string
+}>, res: Response) => {
+  const {searchNameTerm, sortBy, sortDirection, pageNumber, pageSize} = req.query
+
+
+  const blogs = await blogsService.getAllBlogs(searchNameTerm, sortBy, sortDirection, pageNumber, pageSize)
   res.send(blogs)
 })
 
@@ -31,11 +41,11 @@ BlogsRouter.get('/:id', async (req: RequestWithParams<{ id: string }>, res: Resp
 })
 
 BlogsRouter.get('/:blogId/posts',
-  async (req: RequestWithParamsAndQuery<{blogId: string}, {
+  async (req: RequestWithParamsAndQuery<{ blogId: string }, {
     pageNumber: string, pageSize: string, sortBy: string, sortDirection: string
   }>, res: Response) => {
-    const { blogId } = req.params
-    const { pageNumber, pageSize, sortBy, sortDirection } = req.query
+    const {blogId} = req.params
+    const {pageNumber, pageSize, sortBy, sortDirection} = req.query
 
     // is it possible to trigger repository layer from router
     const isBlogExist = await blogsCollection.findOne({id: blogId})

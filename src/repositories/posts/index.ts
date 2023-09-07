@@ -1,3 +1,4 @@
+import {DeleteResult, FindOptions, UpdateResult} from "mongodb";
 import {blogsCollection, postsCollection} from "../../db/db";
 import {blogsDb, postsDb} from "../../db/mock_data";
 import {IPost} from "../../interfaces";
@@ -5,38 +6,20 @@ import {blogsRepository} from "../blogs";
 import { v4 as uuidv4 } from 'uuid';
 
 export const postsRepository = {
-  async getAllPosts(): Promise<IPost[]> {
-    // no await because of await in router
-    return postsCollection.find({}, {projection: {_id: 0}}).toArray()
+  async getAllPosts(postsFindOptions: FindOptions): Promise<IPost[]> {
+    /// no await because of await in router
+    return postsCollection.find({}, postsFindOptions).toArray()
   },
   async getPostById(id: string): Promise<IPost | null> {
     return postsCollection.findOne({id}, {projection: {_id: 0}})
   },
-  async createPost(title: string, shortDescription: string, content: string, blogId: string) {
-    const blog = await blogsCollection.findOne({id: blogId}, {projection: {_id: 0}})
+  async createPost(newPost: IPost) {
+    /// ?
+    return postsCollection.insertOne({...newPost})
 
-    if (blog) {
-      const newPost = {
-        id: uuidv4(),
-        title,
-        content,
-        shortDescription,
-        blogId,
-        blogName: blog.name,
-        createdAt: new Date().toISOString()
-      }
-
-      await postsCollection.insertOne({...newPost})
-
-      return {
-        ...newPost
-      }
-    } else {
-      return false
-    }
   },
-  async updatePostById(id: string, title: string, shortDescription: string, content: string, blogId: string): Promise<boolean> {
-    const response = await postsCollection.updateOne({blogId}, {
+  async updatePostById(id: string, title: string, shortDescription: string, content: string, blogId: string): Promise<UpdateResult> {
+    return postsCollection.updateOne({blogId}, {
       $set: {
         blogId,
         title,
@@ -44,13 +27,11 @@ export const postsRepository = {
         content
       }
     })
-
-    /// matchedCount isn't ok
-    return !!response.modifiedCount || !!response.matchedCount
   },
 
-  async deletePostById(id: string): Promise<boolean> {
-    const result = await postsCollection.deleteOne({id})
-    return !!result.deletedCount
+  async deletePostById(id: string): Promise<DeleteResult> {
+    /// where to check deletion? service / repository?
+    return postsCollection.deleteOne({id})
+
   }
 }

@@ -5,8 +5,34 @@ import {IBlog, IPost} from "../interfaces";
 import {blogsRepository} from "../repositories/blogs";
 
 export const blogsService = {
-  getAllBlogs() {
-    return blogsRepository.getAllBlogs()
+  /// in router we says than they are all strings
+  async getAllBlogs(
+    searchNameTerm: string | null = null,
+    sortBy: string = 'createdAt',
+    sortDirection: string = 'asc',
+    pageNumber: number = 1,
+    pageSize: number = 10) {
+
+    const skipCount = (pageNumber - 1) * pageSize
+    const blogsFindOptions: FindOptions = {
+      projection: {_id: 0},
+      sort: {[sortBy]: sortDirection},
+      skip: skipCount,
+      /// by default it's number but if pass it's string
+      limit: Number(pageSize),
+    }
+    const filterOptions = {
+      ...(searchNameTerm && {name: new RegExp(searchNameTerm, 'i')})
+    }
+
+    const blogs = await blogsRepository.getAllBlogs(filterOptions, blogsFindOptions)
+
+    return {
+      page: pageNumber,
+      pageSize: Number(pageSize),
+      totalCount: blogs.length,
+      items: blogs
+    }
   },
   getBlogById(id: string): Promise<IBlog | null>{
     return blogsRepository.getBlogById(id)
@@ -30,6 +56,7 @@ export const blogsService = {
       limit: Number(pageSize)
     }
 
+    // two requests to getBlogPostsById
     const posts = await blogsRepository.getBlogPostsById(blogId, postsFindOptions)
     const postForPagesCounting = await blogsRepository.getBlogPostsById(blogId, {})
     const totalCount = postForPagesCounting.length

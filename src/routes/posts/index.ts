@@ -2,7 +2,14 @@ import {raw, Request, Response, Router} from "express";
 import {body, param, validationResult} from "express-validator";
 import {ObjectId, UUID} from "mongodb";
 import {updateOutput} from "ts-jest/dist/legacy/compiler/compiler-utils";
-import {IPost, RequestWithBody, RequestWithParams, RequestWithParamsAndBody} from "../../interfaces";
+import {postsService} from "../../domain/posts.service";
+import {
+  IPost,
+  RequestWithBody,
+  RequestWithParams,
+  RequestWithParamsAndBody,
+  RequestWithParamsAndQuery, RequestWithQuery
+} from "../../interfaces";
 import {AuthMiddleware} from "../../middlewares/middlewares";
 import {blogsRepository} from "../../repositories/blogs";
 import {postsRepository} from "../../repositories/posts";
@@ -10,14 +17,23 @@ import {postsRepository} from "../../repositories/posts";
 
 export const postsRouter = Router()
 
-postsRouter.get('/', async (req: Request, res: Response) => {
-  const posts = await postsRepository.getAllPosts()
-  res.send(posts)
-})
+postsRouter.get('/',
+  async (req: RequestWithQuery<{
+    pageNumber: string, pageSize: string, sortBy: string, sortDirection: 'asc' | 'desc'
+  }>, res: Response) => {
+    const {pageNumber, pageSize, sortBy, sortDirection} = req.query
+
+    const posts = await postsService.getAllPosts(
+      Number(pageNumber) || undefined,
+      Number(pageSize) || undefined,
+      sortBy,
+      sortDirection)
+    res.send(posts)
+  })
 
 postsRouter.get('/:id', async (req: RequestWithParams<{ id: string }>, res: Response) => {
   const {id} = req.params
-  const post = await postsRepository.getPostById(id)
+  const post = await postsService.getPostById(id)
 
   if (post) {
     res.send(post)
@@ -31,7 +47,7 @@ postsRouter.post('/',
   body('title').trim().notEmpty().isLength({max: 30}),
   body('shortDescription').trim().notEmpty().isLength({max: 100}),
   body('content').trim().notEmpty().isLength({max: 1000}),
-  body('blogId').trim().notEmpty().custom(async (blogId, { req }) => {
+  body('blogId').trim().notEmpty().custom(async (blogId, {req}) => {
     const blog = await blogsRepository.getBlogById(blogId);
     if (!blog) {
       throw new Error('Blog not found');
@@ -61,7 +77,7 @@ postsRouter.post('/',
       return
     }
 
-    const newPost = await postsRepository.createPost(title, shortDescription, content, blogId)
+    const newPost = await postsService.createPost(title, shortDescription, content, blogId)
     if (newPost) {
       res.status(201).send(newPost)
     } else {
@@ -74,7 +90,7 @@ postsRouter.put('/:id',
   body('title').trim().notEmpty().isLength({max: 30}),
   body('shortDescription').trim().notEmpty().isLength({max: 100}),
   body('content').trim().notEmpty().isLength({max: 1000}),
-  body('blogId').trim().notEmpty().custom(async (blogId, { req }) => {
+  body('blogId').trim().notEmpty().custom(async (blogId, {req}) => {
     const blog = await blogsRepository.getBlogById(blogId);
     if (!blog) {
       throw new Error('Blog not found');
@@ -113,7 +129,8 @@ postsRouter.put('/:id',
       return
     }
 
-    const isUpdated = await postsRepository.updatePostById(id, title, shortDescription, content, blogId)
+    const isUpdated = await postsService.updatePostById(id, title, shortDescription, content, blogId)
+
     if (isUpdated) {
       res.sendStatus(204)
     } else {
@@ -124,12 +141,13 @@ postsRouter.put('/:id',
 postsRouter.delete('/:id',
   AuthMiddleware,
   async (req: RequestWithParams<{ id: string }>, res: Response) => {
-  const {id} = req.params
-  const isPostDeleted = await postsRepository.deletePostById(id)
+    /// it's string not number
+    const {id} = req.params
+    const isPostDeleted = await postsService.deletePostById(id)
 
-  if (isPostDeleted) {
-    res.sendStatus(204)
-  } else {
-    res.sendStatus(404)
-  }
-})
+    if (isPostDeleted) {
+      res.sendStatus(204)
+    } else {
+      res.sendStatus(404)
+    }
+  })
