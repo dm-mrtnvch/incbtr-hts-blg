@@ -27,12 +27,12 @@ export const blogsService = {
 
     const blogs = await blogsRepository.getAllBlogs(filterOptions, blogsFindOptions)
     const blogsForLength = await blogsRepository.getAllBlogs({}, {})
-    const totalPagesCount = Math.ceil(blogsForLength.length / Number(pageSize))
+    const totalPagesCount = Math.ceil(blogs.length / Number(pageSize))
     return {
       pagesCount: totalPagesCount,
       page: Number(pageNumber),
       pageSize: Number(pageSize),
-      totalCount: blogsForLength.length,
+      totalCount: blogs.length,
       items: blogs
     }
   },
