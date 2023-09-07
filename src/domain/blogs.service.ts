@@ -9,7 +9,7 @@ export const blogsService = {
   async getAllBlogs(
     searchNameTerm: string | null = null,
     sortBy: string = 'createdAt',
-    sortDirection: string = 'asc',
+    sortDirection: string = 'desc',
     pageNumber: number = 1,
     pageSize: number = 10) {
 
@@ -26,11 +26,13 @@ export const blogsService = {
     }
 
     const blogs = await blogsRepository.getAllBlogs(filterOptions, blogsFindOptions)
-
+    const blogsForLength = await blogsRepository.getAllBlogs({}, {})
+    const totalPagesCount = Math.ceil(blogsForLength.length / Number(pageSize))
     return {
+      pagesCount: totalPagesCount,
       page: pageNumber,
       pageSize: Number(pageSize),
-      totalCount: blogs.length,
+      totalCount: blogsForLength.length,
       items: blogs
     }
   },
@@ -44,7 +46,7 @@ export const blogsService = {
     pageNumber: number = 1,
     pageSize: number = 10,
     sortBy: string = 'createdAt',
-    sortDirection: string = 'asc',
+    sortDirection: string = 'desc',
   ) {
 
     const skipCount = (pageNumber - 1) * pageSize
@@ -107,3 +109,4 @@ export const blogsService = {
     return blogsRepository.deleteBlogById(id)
   }
 }
+

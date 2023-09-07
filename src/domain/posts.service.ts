@@ -9,7 +9,7 @@ export const postsService = {
   async getAllPosts(pageNumber: number = 1,
                     pageSize: number = 10,
                     sortBy: string = 'createdAt',
-                    sortDirection: string = 'asc') {
+                    sortDirection: string = 'desc') {
     const skipCount = (pageNumber - 1) * pageSize
     const postsFindOptions: FindOptions = {
       projection:{_id: 0},
