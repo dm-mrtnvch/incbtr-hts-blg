@@ -20,7 +20,8 @@ export const blogsRepository = {
   },
 
   async createBlog(newBlog: IBlog): Promise<IBlog> {
-    await blogsCollection.insertOne(newBlog)
+    /// insertone mutates the object and add _id
+    await blogsCollection.insertOne({...newBlog})
     /// response for insertOne {
     ///   acknowledged: true,
     ///     insertedId: new ObjectId("64f8dd93bf935ad52a20a1f5")

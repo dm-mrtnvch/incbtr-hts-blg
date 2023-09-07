@@ -32,10 +32,10 @@ BlogsRouter.get('/:id', async (req: RequestWithParams<{ id: string }>, res: Resp
 
 BlogsRouter.get('/:blogId/posts',
   async (req: RequestWithParamsAndQuery<{blogId: string}, {
-    page: string, pageNumber: string, pagesCount: string, pageSize: string, sortBy: string, sortDirection: string
+    pageNumber: string, pageSize: string, sortBy: string, sortDirection: string
   }>, res: Response) => {
     const { blogId } = req.params
-    const { page, pageNumber, pagesCount, pageSize, sortBy, sortDirection } = req.query
+    const { pageNumber, pageSize, sortBy, sortDirection } = req.query
 
     // is it possible to trigger repository layer from router
     const isBlogExist = await blogsCollection.findOne({id: blogId})
@@ -46,12 +46,10 @@ BlogsRouter.get('/:blogId/posts',
 
     const blogPosts = await blogsService.getBlogPostsById(
       blogId,
-      Number(pageNumber),
-      Number(pageSize),
+      Number(pageNumber) || undefined,
+      Number(pageSize) || undefined,
       sortBy,
       sortDirection,
-      Number(pagesCount),
-      Number(page)
     )
     res.send(blogPosts)
   })
@@ -96,7 +94,7 @@ BlogsRouter.post('/:blogId/posts',
   }>, res: Response) => {
     const {blogId} = req.params
     const {title, shortDescription, content} = req.body
-    const isBlogExist = blogsRepository.getBlogById(blogId)
+    const isBlogExist = await blogsRepository.getBlogById(blogId)
 
     const validation = validationResult(req).array({onlyFirstError: true})
 
@@ -117,7 +115,6 @@ BlogsRouter.post('/:blogId/posts',
       res.sendStatus(404)
       return
     }
-
 
     const newBlogPost = await blogsService.createBlogPost(title, shortDescription, content, blogId)
     res.status(201).send(newBlogPost)

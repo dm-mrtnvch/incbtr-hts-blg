@@ -19,11 +19,9 @@ export const blogsService = {
     pageSize: number = 10,
     sortBy: string = 'createdAt',
     sortDirection: string = 'asc',
-    pagesCount: number,
-    page: number = 1
   ) {
 
-    const skipCount = (page - 1) * pageSize
+    const skipCount = (pageNumber - 1) * pageSize
     const postsFindOptions: FindOptions = {
       projection: {_id: 0},
       // @ts-ignore
@@ -33,12 +31,13 @@ export const blogsService = {
     }
 
     const posts = await blogsRepository.getBlogPostsById(blogId, postsFindOptions)
-    const totalCount = posts.length
-    const totalPagesCount = Math.ceil(posts.length / Number(pageSize))
+    const postForPagesCounting = await blogsRepository.getBlogPostsById(blogId, {})
+    const totalCount = postForPagesCounting.length
+    const totalPagesCount = Math.ceil(postForPagesCounting.length / Number(pageSize))
 
     return {
       pagesCount: totalPagesCount,
-      page,
+      page: pageNumber,
       pageSize: Number(pageSize),
       totalCount,
       items: posts
@@ -56,7 +55,7 @@ export const blogsService = {
       isMembership: false
     }
 
-    return blogsRepository.createBlog({...newBlog})
+    return blogsRepository.createBlog(newBlog)
   },
   async createBlogPost(title: string, shortDescription: string, content: string, blogId: string) {
     const blog = await blogsCollection.findOne<IBlog | null>({id: blogId}, {projection: {_id: 0}})
