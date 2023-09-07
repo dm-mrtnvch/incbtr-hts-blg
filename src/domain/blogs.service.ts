@@ -30,7 +30,7 @@ export const blogsService = {
     const totalPagesCount = Math.ceil(blogsForLength.length / Number(pageSize))
     return {
       pagesCount: totalPagesCount,
-      page: pageNumber,
+      page: Number(pageNumber),
       pageSize: Number(pageSize),
       totalCount: blogsForLength.length,
       items: blogs
