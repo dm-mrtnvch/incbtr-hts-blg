@@ -26,7 +26,7 @@ export const usersService = {
     const totalPagesCount = Math.ceil(totalCount / pageSize)
 
     const usersFindOptions: FindOptions = {
-      projection: {_id: 0, password: 0},
+      projection: {_id: 0, password: 0, passwordHash: 0, passwordSalt: 0},
       skip: skipCount,
       limit: pageSize,
       sort: {[sortBy]: sortDirection}
@@ -70,12 +70,12 @@ export const usersService = {
   async checkCredentials(loginOrEmail: string, password: string) {
 
     const user: any = await usersRepository.findUserByLoginOrEmail(loginOrEmail)
-    console.log('user',user )
     if(!user){
       return false
     }
     const passwordHash = await this._generateHash(password, user.passwordSalt)
-    return bcrypt.compare(password, passwordHash)
+
+    return passwordHash === user.passwordHash
   },
   async _generateHash(password: string, passwordSalt: string) {
    return await bcrypt.hash(password, passwordSalt)

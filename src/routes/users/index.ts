@@ -25,9 +25,9 @@ usersRouter.get('/',
 
     const {sortBy, sortDirection, pageNumber, pageSize, searchLoginTerm, searchEmailTerm} = req.query
 
-    const response = await usersService.getAllUsers(sortBy, sortDirection, pageNumber, pageSize, searchLoginTerm, searchEmailTerm)
+    const users = await usersService.getAllUsers(sortBy, sortDirection, pageNumber, pageSize, searchLoginTerm, searchEmailTerm)
 
-    res.send(response)
+    res.send(users)
   })
 
 usersRouter.post('/',

@@ -7,8 +7,8 @@ import {usersService} from "../../services/users.service";
 export const authRouter = Router()
 
 authRouter.post('/login',
-  body('loginOrEmail').notEmpty().trim(),
-  body('password').notEmpty().trim(),
+  body('loginOrEmail').notEmpty().trim().isLength({min: 1}),
+  body('password').notEmpty().trim().isLength({min: 1}),
   async (req: RequestWithBody<{ loginOrEmail: string, password: string }>, res: Response) => {
     const {loginOrEmail, password} = req.body
 
