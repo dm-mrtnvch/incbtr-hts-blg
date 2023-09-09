@@ -10,7 +10,6 @@ export const postsRepository = {
     return postsCollection.find({}, postsFindOptions).toArray()
   },
   async createPost(newPost: IPost) {
-    /// ?
     return postsCollection.insertOne({...newPost})
 
   },
@@ -27,6 +26,7 @@ export const postsRepository = {
 
   async deletePostById(id: string): Promise<DeleteResult> {
     /// where to check deletion? service / repository?
+    /// check in service
     return postsCollection.deleteOne({id})
 
   }

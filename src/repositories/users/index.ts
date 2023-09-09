@@ -7,7 +7,11 @@ export const usersRepository = {
     console.log(filterOptions, findOptions)
     return usersCollection.find(filterOptions, findOptions).toArray()
   },
-  async createUser(newUser: IUser) {
+  /// may be add to usersQueryRepository
+  findUserByLoginOrEmail(loginOrEmail: string) {
+    return usersCollection.findOne({$or: [{login: loginOrEmail}, {email: loginOrEmail}]})
+  },
+  async createUser(newUser: any) {
     await usersCollection.insertOne({...newUser})
     return newUser
   },

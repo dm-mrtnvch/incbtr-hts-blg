@@ -91,6 +91,7 @@ blogsRouter.post('/',
   async (req: RequestWithBody<{ name: string, description: string, websiteUrl: string }>, res: Response) => {
     const {name, description, websiteUrl} = req.body
 
+    /// -> to middleware
     const errors = errorsValidation(req, res)
     if(errors?.errorsMessages?.length){
       res.status(400).send(errors)

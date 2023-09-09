@@ -6,7 +6,6 @@ export const urlPattern = /^https:\/\/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-
 
 export const toNumberOrUndefined = (value: any): number | undefined => {
   const num = Number(value);
-  /// doesn't work with null
   return isNaN(num) ? undefined : num;
 }
 
@@ -22,7 +21,6 @@ enum sortDirectionsEnum {
 export const sortDirectionValueOrUndefined = (sortDirection: string) => {
    return Object.values(sortDirectionsEnum).includes(sortDirection)
     ? sortDirection
-       /// doesn't work with null
     : undefined
 }
 

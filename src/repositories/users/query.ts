@@ -5,6 +5,6 @@ export const usersQueryRepository = {
     return usersCollection.countDocuments(filterOptions)
   },
   getUserById(id: string){
-    return usersCollection.findOne({id})
+    return usersCollection.findOne({id}, {projection: {password: 0}})
   }
 }
