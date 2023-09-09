@@ -1,6 +1,6 @@
 import {NextFunction, Request, Response} from "express";
 
-export const AuthMiddleware = (req: Request, res: Response, next: NextFunction) => {
+export const BasicAuthMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const adminCredentials = 'YWRtaW46cXdlcnR5'
 
   // is it necessary to check req.headers.authorization firstly

@@ -2,13 +2,13 @@ import {Request} from "express";
 
 export interface IUnique {
   id: string
+  createdAt: string
 }
 
 export interface IBlog extends IUnique {
   name: string
   description: string
   websiteUrl: string
-  createdAt: string
   isMembership: boolean
 }
 
@@ -18,7 +18,12 @@ export interface IPost extends IUnique {
   content: string
   blogId: string
   blogName: string
-  createdAt: string
+}
+
+export interface IUser extends IUnique {
+  login: string
+  password: string
+  email: string
 }
 
 export type RequestWithParams<P>  = Request<P, {}, {}, {}>

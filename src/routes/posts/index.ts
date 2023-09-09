@@ -3,7 +3,7 @@ import {body, param, query} from "express-validator";
 import {SortDirection, UUID} from "mongodb";
 import {errorsValidation, sortDirectionValueOrUndefined, toNumberOrUndefined} from "../../helpers/utils";
 import {RequestWithBody, RequestWithParams, RequestWithParamsAndBody, RequestWithQuery} from "../../interfaces";
-import {AuthMiddleware} from "../../middlewares/middlewares";
+import {BasicAuthMiddleware} from "../../middlewares/middlewares";
 import {blogsQueryRepository} from "../../repositories/blogs/query";
 import {postsQueryRepository} from "../../repositories/posts/query";
 import {postsService} from "../../services/posts.service";
@@ -44,7 +44,7 @@ postsRouter.get('/:id',
 })
 
 postsRouter.post('/',
-  AuthMiddleware,
+  BasicAuthMiddleware,
   body('title').trim().notEmpty().isLength({max: 30}),
   body('shortDescription').trim().notEmpty().isLength({max: 100}),
   body('content').trim().notEmpty().isLength({max: 1000}),
@@ -78,7 +78,7 @@ postsRouter.post('/',
   })
 
 postsRouter.put('/:id',
-  AuthMiddleware,
+  BasicAuthMiddleware,
   body('title').trim().notEmpty().isLength({max: 30}),
   body('shortDescription').trim().notEmpty().isLength({max: 100}),
   body('content').trim().notEmpty().isLength({max: 1000}),
@@ -121,7 +121,7 @@ postsRouter.put('/:id',
   })
 
 postsRouter.delete('/:id',
-  AuthMiddleware,
+  BasicAuthMiddleware,
   async (req: RequestWithParams<{ id: string }>, res: Response) => {
     /// it's string not number
     const {id} = req.params

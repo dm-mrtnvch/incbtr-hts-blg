@@ -11,13 +11,13 @@ import {
   RequestWithParamsAndBody,
   RequestWithParamsAndQuery, RequestWithQuery
 } from "../../interfaces";
-import {AuthMiddleware} from "../../middlewares/middlewares";
+import {BasicAuthMiddleware} from "../../middlewares/middlewares";
 import {blogsRepository} from "../../repositories/blogs";
 
 
-export const BlogsRouter = Router()
+export const blogsRouter = Router()
 
-BlogsRouter.get('/',
+blogsRouter.get('/',
   query('pageNumber').customSanitizer(toNumberOrUndefined),
   query('pageSize').customSanitizer(toNumberOrUndefined),
   query('sortDirection').customSanitizer(sortDirectionValueOrUndefined),
@@ -41,7 +41,7 @@ BlogsRouter.get('/',
     res.send(blogs)
   })
 
-BlogsRouter.get('/:id', async (req: RequestWithParams<{ id: string }>, res: Response) => {
+blogsRouter.get('/:id', async (req: RequestWithParams<{ id: string }>, res: Response) => {
   const {id} = req.params
 
   const blog = await blogsQueryRepository.getBlogById(id)
@@ -53,7 +53,7 @@ BlogsRouter.get('/:id', async (req: RequestWithParams<{ id: string }>, res: Resp
   }
 })
 
-BlogsRouter.get('/:blogId/posts',
+blogsRouter.get('/:blogId/posts',
   query('pageNumber').customSanitizer(toNumberOrUndefined),
   query('pageSize').customSanitizer(toNumberOrUndefined),
   query('sortDirection').customSanitizer(sortDirectionValueOrUndefined),
@@ -83,8 +83,8 @@ BlogsRouter.get('/:blogId/posts',
   })
 
 
-BlogsRouter.post('/',
-  AuthMiddleware,
+blogsRouter.post('/',
+  BasicAuthMiddleware,
   body('name').trim().notEmpty().isLength({max: 15}),
   body('description').trim().notEmpty().isLength({max: 500}),
   body('websiteUrl').trim().notEmpty().isLength({max: 100}).matches('^https://([a-zA-Z0-9_-]+\\.)+[a-zA-Z0-9_-]+(\\/[a-zA-Z0-9_-]+)*\\/?$').withMessage('Incorrect websiteUrl field'),
@@ -102,8 +102,8 @@ BlogsRouter.post('/',
     res.status(201).send(newBlog)
   })
 
-BlogsRouter.post('/:blogId/posts',
-  AuthMiddleware,
+blogsRouter.post('/:blogId/posts',
+  BasicAuthMiddleware,
   body('title').trim().notEmpty().isLength({max: 30}),
   body('shortDescription').trim().notEmpty().isLength({max: 100}),
   body('content').trim().notEmpty().isLength({max: 1000}),
@@ -132,8 +132,8 @@ BlogsRouter.post('/:blogId/posts',
 
   })
 
-BlogsRouter.put('/:id',
-  AuthMiddleware,
+blogsRouter.put('/:id',
+  BasicAuthMiddleware,
   body('name').trim().notEmpty().isLength({max: 15}),
   body('description').trim().notEmpty().isLength({max: 500}),
   body('websiteUrl').trim().notEmpty().isLength({max: 100}).matches('^https://([a-zA-Z0-9_-]+\\.)+[a-zA-Z0-9_-]+(\\/[a-zA-Z0-9_-]+)*\\/?$').withMessage('Incorrect websiteUrl field'),
@@ -160,8 +160,8 @@ BlogsRouter.put('/:id',
     }
   })
 
-BlogsRouter.delete('/:id',
-  AuthMiddleware,
+blogsRouter.delete('/:id',
+  BasicAuthMiddleware,
   async (req: RequestWithParams<{ id: string }>, res: Response) => {
     const {id} = req.params
 
