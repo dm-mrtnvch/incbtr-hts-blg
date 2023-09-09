@@ -1,8 +1,9 @@
 import {raw, Request, Response, Router} from "express";
 import {body, param, validationResult} from "express-validator";
-import {ObjectId, UUID} from "mongodb";
+import {ObjectId, SortDirection, UUID} from "mongodb";
 import {updateOutput} from "ts-jest/dist/legacy/compiler/compiler-utils";
-import {postsService} from "../../domain/posts.service";
+import {blogsQueryRepository} from "../../repositories/blogs/query";
+import {postsService} from "../../services/posts.service";
 import {
   IPost,
   RequestWithBody,
@@ -19,7 +20,7 @@ export const postsRouter = Router()
 
 postsRouter.get('/',
   async (req: RequestWithQuery<{
-    pageNumber: string, pageSize: string, sortBy: string, sortDirection: 'asc' | 'desc'
+    pageNumber: string, pageSize: string, sortBy: string, sortDirection: SortDirection
   }>, res: Response) => {
     const {pageNumber, pageSize, sortBy, sortDirection} = req.query
 
@@ -48,7 +49,7 @@ postsRouter.post('/',
   body('shortDescription').trim().notEmpty().isLength({max: 100}),
   body('content').trim().notEmpty().isLength({max: 1000}),
   body('blogId').trim().notEmpty().custom(async (blogId, {req}) => {
-    const blog = await blogsRepository.getBlogById(blogId);
+    const blog = await blogsQueryRepository.getBlogById(blogId);
     if (!blog) {
       throw new Error('Blog not found');
     }
@@ -91,7 +92,7 @@ postsRouter.put('/:id',
   body('shortDescription').trim().notEmpty().isLength({max: 100}),
   body('content').trim().notEmpty().isLength({max: 1000}),
   body('blogId').trim().notEmpty().custom(async (blogId, {req}) => {
-    const blog = await blogsRepository.getBlogById(blogId);
+    const blog = await blogsQueryRepository.getBlogById(blogId);
     if (!blog) {
       throw new Error('Blog not found');
     }

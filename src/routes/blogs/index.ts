@@ -1,7 +1,10 @@
-import {raw, Request, Response, Router} from "express"
-import {body, validationResult} from "express-validator";
+import {NextFunction, raw, Request, Response, Router} from "express"
+import {body, check, query, validationResult} from "express-validator";
+import {SortDirection} from "mongodb";
 import {blogsCollection} from "../../db/db";
-import {blogsService} from "../../domain/blogs.service";
+import {blogsQueryRepository} from "../../repositories/blogs/query";
+import {blogsService} from "../../services/blogs.service";
+import {toNumberOrUndefined, sortDirectionValueOrUndefined, errorsValidation} from "../../helpers/utils";
 import {
   RequestWithBody,
   RequestWithParams,
@@ -14,24 +17,34 @@ import {blogsRepository} from "../../repositories/blogs";
 
 export const BlogsRouter = Router()
 
-BlogsRouter.get('/', async (req: RequestWithQuery<{
-  // useless typization in req.query
-  searchNameTerm: string,
-  sortBy: string,
-  sortDirection: string,
-  pageNumber: string,
-  pageSize: string
-}>, res: Response) => {
-  const {searchNameTerm, sortBy, sortDirection, pageNumber, pageSize} = req.query
+BlogsRouter.get('/',
+  query('pageNumber').customSanitizer(toNumberOrUndefined),
+  query('pageSize').customSanitizer(toNumberOrUndefined),
+  query('sortDirection').customSanitizer(sortDirectionValueOrUndefined),
+  async (req: RequestWithQuery<{
+    searchNameTerm?: string,
+    pageNumber?: number,
+    pageSize?: number
+    sortBy?: string,
+    // useless to write sortDirection: SortDirection || undefined as we declared that it's optional param,
+    sortDirection?: SortDirection,
+  }>, res: Response) => {
+    const {searchNameTerm, pageNumber, pageSize, sortBy, sortDirection} = req.query
 
-
-  const blogs = await blogsService.getAllBlogs(searchNameTerm, sortBy, sortDirection, pageNumber, pageSize)
-  res.send(blogs)
-})
+    const blogs = await blogsService.getAllBlogs(
+      searchNameTerm,
+      pageNumber,
+      pageSize,
+      sortBy,
+      sortDirection,
+    )
+    res.send(blogs)
+  })
 
 BlogsRouter.get('/:id', async (req: RequestWithParams<{ id: string }>, res: Response) => {
   const {id} = req.params
-  const blog = await blogsService.getBlogById(id)
+
+  const blog = await blogsQueryRepository.getBlogById(id)
 
   if (blog) {
     res.send(blog)
@@ -41,14 +54,19 @@ BlogsRouter.get('/:id', async (req: RequestWithParams<{ id: string }>, res: Resp
 })
 
 BlogsRouter.get('/:blogId/posts',
+  query('pageNumber').customSanitizer(toNumberOrUndefined),
+  query('pageSize').customSanitizer(toNumberOrUndefined),
+  query('sortDirection').customSanitizer(sortDirectionValueOrUndefined),
   async (req: RequestWithParamsAndQuery<{ blogId: string }, {
-    pageNumber: string, pageSize: string, sortBy: string, sortDirection: string
+    pageNumber?: number,
+    pageSize?: number,
+    sortBy?: string,
+    sortDirection?: SortDirection
   }>, res: Response) => {
     const {blogId} = req.params
     const {pageNumber, pageSize, sortBy, sortDirection} = req.query
 
-    // is it possible to trigger repository layer from router
-    const isBlogExist = await blogsCollection.findOne({id: blogId})
+    const isBlogExist = await blogsQueryRepository.getBlogById(blogId)
     if (!isBlogExist) {
       res.sendStatus(404)
       return
@@ -56,13 +74,14 @@ BlogsRouter.get('/:blogId/posts',
 
     const blogPosts = await blogsService.getBlogPostsById(
       blogId,
-      Number(pageNumber) || undefined,
-      Number(pageSize) || undefined,
+      pageNumber,
+      pageSize,
       sortBy,
       sortDirection,
     )
     res.send(blogPosts)
   })
+
 
 BlogsRouter.post('/',
   AuthMiddleware,
@@ -72,18 +91,9 @@ BlogsRouter.post('/',
   async (req: RequestWithBody<{ name: string, description: string, websiteUrl: string }>, res: Response) => {
     const {name, description, websiteUrl} = req.body
 
-    const validation = validationResult(req).array({onlyFirstError: true})
-
-    if (validation.length) {
-      const errorsMessages: any = []
-      validation.forEach((error: any) => {
-        errorsMessages.push({
-          field: error.path,
-          message: error.msg
-        })
-      })
-
-      res.status(400).send({errorsMessages})
+    const errors = errorsValidation(req, res)
+    if(errors?.errorsMessages?.length){
+      res.status(400).send(errors)
       return
     }
 
@@ -104,20 +114,11 @@ BlogsRouter.post('/:blogId/posts',
   }>, res: Response) => {
     const {blogId} = req.params
     const {title, shortDescription, content} = req.body
-    const isBlogExist = await blogsRepository.getBlogById(blogId)
+    const isBlogExist = await blogsQueryRepository.getBlogById(blogId)
 
-    const validation = validationResult(req).array({onlyFirstError: true})
-
-    if (validation.length) {
-      const errorsMessages: any = []
-      validation.forEach((error: any) => {
-        errorsMessages.push({
-          field: error.path,
-          message: error.msg
-        })
-      })
-
-      res.status(400).send({errorsMessages})
+    const errors = errorsValidation(req, res)
+    if(errors?.errorsMessages?.length){
+      res.status(400).send(errors)
       return
     }
 
@@ -144,18 +145,9 @@ BlogsRouter.put('/:id',
     const {id} = req.params
     const {name, description, websiteUrl} = req.body
 
-    const validation = validationResult(req).array({onlyFirstError: true})
-
-    if (validation.length) {
-      const errorsMessages: any = []
-      validation.forEach((error: any) => {
-        errorsMessages.push({
-          field: error.path,
-          message: error.msg
-        })
-      })
-
-      res.status(400).send({errorsMessages})
+    const errors = errorsValidation(req, res)
+    if(errors?.errorsMessages?.length){
+      res.status(400).send(errors)
       return
     }
 

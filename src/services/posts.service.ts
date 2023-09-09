@@ -1,4 +1,4 @@
-import {DeleteResult, FindOptions} from "mongodb";
+import {DeleteResult, FindOptions, SortDirection} from "mongodb";
 import {v4 as uuidv4} from "uuid";
 import {blogsCollection, postsCollection} from "../db/db";
 import {IPost} from "../interfaces";
@@ -9,7 +9,7 @@ export const postsService = {
   async getAllPosts(pageNumber: number = 1,
                     pageSize: number = 10,
                     sortBy: string = 'createdAt',
-                    sortDirection: string = 'desc') {
+                    sortDirection: SortDirection = 'desc') {
     const skipCount = (pageNumber - 1) * pageSize
     const postsFindOptions: FindOptions = {
       projection:{_id: 0},
@@ -32,7 +32,6 @@ export const postsService = {
     return postsRepository.getPostById(id)
   },
   async createPost(title: string, shortDescription: string, content: string, blogId: string) {
-    // const blog = await blogsCollection.findOne({id: blogId}, {projection: {_id: 0}})
     const blog = await blogsService.getBlogById(blogId)
 
     if (blog) {

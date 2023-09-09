@@ -1,52 +1,55 @@
-import {FindOptions} from "mongodb";
+import {FindOptions, SortDirection} from "mongodb";
 import {v4 as uuidv4} from "uuid";
 import {blogsCollection, postsCollection} from "../db/db";
 import {IBlog, IPost} from "../interfaces";
 import {blogsRepository} from "../repositories/blogs";
+import {blogsQueryRepository} from "../repositories/blogs/query";
 
 export const blogsService = {
-  /// in router we says than they are all strings
   async getAllBlogs(
     searchNameTerm: string | null = null,
-    sortBy: string = 'createdAt',
-    sortDirection: string = 'desc',
     pageNumber: number = 1,
-    pageSize: number = 10) {
+    pageSize: number = 10,
+    sortBy: string = 'createdAt',
+    sortDirection: SortDirection = 'desc'
+) {
 
     const skipCount = (pageNumber - 1) * pageSize
     const blogsFindOptions: FindOptions = {
       projection: {_id: 0},
       sort: {[sortBy]: sortDirection},
       skip: skipCount,
-      /// by default it's number but if pass it's string
-      limit: Number(pageSize),
+      limit: pageSize,
     }
     const filterOptions = {
       ...(searchNameTerm && {name: new RegExp(searchNameTerm, 'i')})
     }
 
+    // c ignat
+    // const filterOptions2 = searchNameTerm
+    //   ? { name: new RegExp(searchNameTerm, 'i')}
+    //   : {}
+
+
     const blogs = await blogsRepository.getAllBlogs(filterOptions, blogsFindOptions)
-    const blogsForLength = await blogsRepository.getAllBlogs({}, {})
-    const totalPagesCount = Math.ceil(blogs.length / Number(pageSize))
+    const totalCount = await blogsQueryRepository.getAllBlogsCount(filterOptions)
+    const totalPagesCount = Math.ceil(totalCount / pageSize)
+
     return {
       pagesCount: totalPagesCount,
-      page: Number(pageNumber),
-      pageSize: Number(pageSize),
-      totalCount: blogs.length,
+      page: pageNumber,
+      pageSize,
+      totalCount,
       items: blogs
     }
   },
-  getBlogById(id: string): Promise<IBlog | null>{
-    return blogsRepository.getBlogById(id)
-  },
-
 
   async getBlogPostsById(
     blogId: string,
     pageNumber: number = 1,
     pageSize: number = 10,
     sortBy: string = 'createdAt',
-    sortDirection: string = 'desc',
+    sortDirection: SortDirection = 'desc',
   ) {
 
     const skipCount = (pageNumber - 1) * pageSize

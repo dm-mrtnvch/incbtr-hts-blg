@@ -7,7 +7,6 @@ import { v4 as uuidv4 } from 'uuid';
 
 export const postsRepository = {
   async getAllPosts(postsFindOptions: FindOptions): Promise<IPost[]> {
-    /// no await because of await in router
     return postsCollection.find({}, postsFindOptions).toArray()
   },
   async getPostById(id: string): Promise<IPost | null> {
