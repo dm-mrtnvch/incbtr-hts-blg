@@ -27,6 +27,7 @@ export const sortDirectionValueOrUndefined = (sortDirection: string) => {
 }
 
 export const errorsValidation = (req: Request, res: Response) => {
+  /// what about typization for request
   const validation = validationResult(req).array({onlyFirstError: true})
 
   if (validation.length) {

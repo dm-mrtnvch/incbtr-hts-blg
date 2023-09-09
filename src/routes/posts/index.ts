@@ -1,40 +1,40 @@
-import {raw, Request, Response, Router} from "express";
-import {body, param, validationResult} from "express-validator";
-import {ObjectId, SortDirection, UUID} from "mongodb";
-import {updateOutput} from "ts-jest/dist/legacy/compiler/compiler-utils";
-import {blogsQueryRepository} from "../../repositories/blogs/query";
-import {postsService} from "../../services/posts.service";
-import {
-  IPost,
-  RequestWithBody,
-  RequestWithParams,
-  RequestWithParamsAndBody,
-  RequestWithParamsAndQuery, RequestWithQuery
-} from "../../interfaces";
+import {Response, Router} from "express";
+import {body, param, query} from "express-validator";
+import {SortDirection, UUID} from "mongodb";
+import {errorsValidation, sortDirectionValueOrUndefined, toNumberOrUndefined} from "../../helpers/utils";
+import {RequestWithBody, RequestWithParams, RequestWithParamsAndBody, RequestWithQuery} from "../../interfaces";
 import {AuthMiddleware} from "../../middlewares/middlewares";
-import {blogsRepository} from "../../repositories/blogs";
-import {postsRepository} from "../../repositories/posts";
+import {blogsQueryRepository} from "../../repositories/blogs/query";
+import {postsQueryRepository} from "../../repositories/posts/query";
+import {postsService} from "../../services/posts.service";
 
 
 export const postsRouter = Router()
 
 postsRouter.get('/',
+  query('pageNumber').customSanitizer(toNumberOrUndefined),
+  query('pageSize').customSanitizer(toNumberOrUndefined),
+  query('sortDirection').customSanitizer(sortDirectionValueOrUndefined),
   async (req: RequestWithQuery<{
-    pageNumber: string, pageSize: string, sortBy: string, sortDirection: SortDirection
+    pageNumber?: number,
+    pageSize?: number,
+    sortBy?: string,
+    sortDirection?: SortDirection
   }>, res: Response) => {
     const {pageNumber, pageSize, sortBy, sortDirection} = req.query
 
     const posts = await postsService.getAllPosts(
-      Number(pageNumber) || undefined,
-      Number(pageSize) || undefined,
+      pageNumber,
+      pageSize,
       sortBy,
       sortDirection)
     res.send(posts)
   })
 
-postsRouter.get('/:id', async (req: RequestWithParams<{ id: string }>, res: Response) => {
+postsRouter.get('/:id',
+  async (req: RequestWithParams<{ id: string }>, res: Response) => {
   const {id} = req.params
-  const post = await postsService.getPostById(id)
+  const post = await postsQueryRepository.getPostById(id)
 
   if (post) {
     res.send(post)
@@ -48,7 +48,7 @@ postsRouter.post('/',
   body('title').trim().notEmpty().isLength({max: 30}),
   body('shortDescription').trim().notEmpty().isLength({max: 100}),
   body('content').trim().notEmpty().isLength({max: 1000}),
-  body('blogId').trim().notEmpty().custom(async (blogId, {req}) => {
+  body('blogId').trim().notEmpty().custom(async (blogId) => {
     const blog = await blogsQueryRepository.getBlogById(blogId);
     if (!blog) {
       throw new Error('Blog not found');
@@ -63,18 +63,9 @@ postsRouter.post('/',
   }>, res: Response) => {
     const {title, shortDescription, content, blogId} = req.body
 
-    const errors = validationResult(req).array({onlyFirstError: true})
-
-    if (errors.length) {
-      const errorsMessages: any = []
-      errors.forEach((error: any) => {
-        errorsMessages.push({
-          message: error.msg,
-          field: error.path
-        })
-      })
-      console.log('eee', {errorsMessages})
-      res.status(400).send({errorsMessages})
+    const errors = errorsValidation(req, res)
+    if (errors?.errorsMessages?.length) {
+      res.status(400).send(errors)
       return
     }
 
@@ -107,26 +98,16 @@ postsRouter.put('/:id',
     const {id} = req.params
     const {title, blogId, content, shortDescription} = req.body
 
-    /// is it repository logic to check post?
-    const post = await postsRepository.getPostById(id)
+    const post = await postsQueryRepository.getPostById(id)
 
     if (!post) {
       res.sendStatus(404)
       return
     }
 
-    const errors = validationResult(req).array({onlyFirstError: true})
-
-    if (errors.length) {
-      const errorsMessages: any = []
-      errors.forEach((error: any) => {
-        errorsMessages.push({
-          message: error.msg,
-          field: error.path
-        })
-      })
-      console.log('errorsMessages', errorsMessages)
-      res.status(400).send({errorsMessages})
+    const errors = errorsValidation(req, res)
+    if (errors?.errorsMessages?.length) {
+      res.status(400).send(errors)
       return
     }
 

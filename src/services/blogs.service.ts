@@ -90,7 +90,7 @@ export const blogsService = {
     return blogsRepository.createBlog(newBlog)
   },
   async createBlogPost(title: string, shortDescription: string, content: string, blogId: string) {
-    const blog = await blogsCollection.findOne<IBlog | null>({id: blogId}, {projection: {_id: 0}})
+    const blog = await blogsQueryRepository.getBlogById(blogId)
     const newBlogPost: IPost = {
       id: uuidv4(),
       title,

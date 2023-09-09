@@ -9,9 +9,6 @@ export const postsRepository = {
   async getAllPosts(postsFindOptions: FindOptions): Promise<IPost[]> {
     return postsCollection.find({}, postsFindOptions).toArray()
   },
-  async getPostById(id: string): Promise<IPost | null> {
-    return postsCollection.findOne({id}, {projection: {_id: 0}})
-  },
   async createPost(newPost: IPost) {
     /// ?
     return postsCollection.insertOne({...newPost})

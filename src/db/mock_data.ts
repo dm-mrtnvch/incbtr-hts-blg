@@ -37,14 +37,16 @@ export const postsDb: any[] = [
 
 
 export const testingMockData = {
-  firstCreatedBlog: {
-    name: 'first blog',
-    description: 'first description',
-    websiteUrl: 'https://www.example.com'
-  },
-  secondCreatedBlog: {
+  blogs: {
+    firstValidValuesBlog: {
+      name: 'first blog',
+      description: 'first description',
+      websiteUrl: 'https://www.example.com'
+    },
+    secondValidValuesBlog: {
       name: 'second blog',
       description: 'second description',
       websiteUrl: 'https://www.second-example.com'
+    }
   }
 }

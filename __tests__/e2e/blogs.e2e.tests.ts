@@ -6,7 +6,9 @@ import {IBlog, IPost} from "../../src/interfaces";
 
 describe('/blogs', () => {
   beforeAll(async () => {
-    await request(app).delete('/testing/all-data')
+    await request(app)
+      .delete('/testing/all-data')
+      .expect(204)
   })
 
   it('should return 200 and empty db', async () => {
@@ -25,27 +27,29 @@ describe('/blogs', () => {
       .post('/blogs')
       /// how auth works
       .auth('admin', 'qwerty')
-      .send(testingMockData.firstCreatedBlog)
+      .send(testingMockData.blogs.firstValidValuesBlog)
       .expect(201)
 
 
     firstCreatedBlog = createResponse.body
     expect(firstCreatedBlog).toEqual({
-      ...testingMockData.firstCreatedBlog,
-      id: expect.any(String)
+      ...testingMockData.blogs.firstValidValuesBlog,
+      id: expect.any(String),
+      createdAt: expect.any(String),
+      isMembership: false
     })
   })
 
-  // it('should get exact blog by id', async () => {
-  //   const createdResponse = await request(app)
-  //     .get(`/blogs/${firstCreatedBlog?.id}`)
-  //     .expect(200)
-  //
-  //   expect(createdResponse.body).toEqual({
-  //     ...firstCreatedBlog,
-  //     id: expect.any(String)
-  //   })
-  // })
+  it('should get exact blog by id', async () => {
+    const createdResponse = await request(app)
+      .get(`/blogs/${firstCreatedBlog?.id}`)
+      .expect(200)
+
+    expect(createdResponse.body).toEqual({
+      ...firstCreatedBlog,
+      id: expect.any(String)
+    })
+  })
   //
   // it('should return blogs array', async () => {
   //   const response = await request(app)

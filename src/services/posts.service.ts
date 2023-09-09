@@ -2,7 +2,9 @@ import {DeleteResult, FindOptions, SortDirection} from "mongodb";
 import {v4 as uuidv4} from "uuid";
 import {blogsCollection, postsCollection} from "../db/db";
 import {IPost} from "../interfaces";
+import {blogsQueryRepository} from "../repositories/blogs/query";
 import {postsRepository} from "../repositories/posts";
+import {postsQueryRepository} from "../repositories/posts/query";
 import {blogsService} from "./blogs.service";
 
 export const postsService = {
@@ -12,27 +14,25 @@ export const postsService = {
                     sortDirection: SortDirection = 'desc') {
     const skipCount = (pageNumber - 1) * pageSize
     const postsFindOptions: FindOptions = {
-      projection:{_id: 0},
-      // @ts-ignore
+      projection: {_id: 0},
       sort: {[sortBy]: sortDirection},
       skip: skipCount,
-      limit: Number(pageSize)
+      limit: pageSize
     }
     const posts = await postsRepository.getAllPosts(postsFindOptions)
-    const postsForLength = await postsRepository.getAllPosts({})
-    return  {
-      pagesCount: Math.ceil(postsForLength.length /  pageSize),
-      page: Number(pageNumber),
-      pageSize: Number(pageSize),
-      totalCount: postsForLength.length,
+    const totalCount = await postsQueryRepository.getAllPostsCount({})
+    const totalPagesCount = Math.ceil(totalCount / pageSize)
+
+    return {
+      pagesCount: totalPagesCount,
+      page: pageNumber,
+      pageSize,
+      totalCount,
       items: posts
     }
   },
-  async getPostById(id: string): Promise<IPost | null> {
-    return postsRepository.getPostById(id)
-  },
   async createPost(title: string, shortDescription: string, content: string, blogId: string) {
-    const blog = await blogsService.getBlogById(blogId)
+    const blog = await blogsQueryRepository.getBlogById(blogId)
 
     if (blog) {
       const newPost = {
@@ -56,14 +56,10 @@ export const postsService = {
   },
   async updatePostById(id: string, title: string, shortDescription: string, content: string, blogId: string): Promise<boolean> {
     const updateResult = await postsRepository.updatePostById(id, title, shortDescription, content, blogId)
-
-    /// what about matched count?
     return !!updateResult.modifiedCount
-
   },
 
   async deletePostById(id: string): Promise<Boolean> {
-    // is it appropriate place to make checks?
     const deleteResult = await postsRepository.deletePostById(id)
     return !!deleteResult.deletedCount
   }
