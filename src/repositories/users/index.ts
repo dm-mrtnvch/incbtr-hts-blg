@@ -4,8 +4,10 @@ import {IUser} from "../../interfaces";
 
 export const usersRepository = {
   getAllUsers(filterOptions: any, findOptions: FindOptions) {
-    console.log(filterOptions, findOptions)
-    return usersCollection.find(filterOptions, findOptions).toArray()
+    const {login, email}: any = filterOptions
+
+    console.log(login, email)
+    return usersCollection.find({$or: [{login}, {email}]}, findOptions).toArray()
   },
   /// may be add to usersQueryRepository
   findUserByLoginOrEmail(loginOrEmail: string) {

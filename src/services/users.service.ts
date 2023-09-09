@@ -31,9 +31,8 @@ export const usersService = {
       limit: pageSize,
       sort: {[sortBy]: sortDirection}
     }
-
     const users = await usersRepository.getAllUsers(filterOptions, usersFindOptions)
-    console.log('users', users)
+
     return {
       pagesCount: totalPagesCount,
       page: pageNumber,
