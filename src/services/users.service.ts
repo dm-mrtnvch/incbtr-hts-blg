@@ -1,4 +1,4 @@
-import {FindOptions, SortDirection, UUID} from "mongodb";
+import {Filter, FindOptions, SortDirection, UUID} from "mongodb";
 import {usersCollection} from "../db/db";
 import {IUser} from "../interfaces";
 import {usersRepository} from "../repositories/users";
@@ -16,9 +16,29 @@ export const usersService = {
     searchEmailTerm: string | null = null
   ) {
 
+    // const conditions = []
+    //
+    // if(searchLoginTerm) {
+    //   conditions.push({login: new RegExp(searchLoginTerm, 'i')})
+    // }
+    //
+    // if(searchEmailTerm) {
+    //   conditions.push({email: new RegExp(searchEmailTerm, 'i')})
+    // }
+    //
+    // const filterOptions = conditions.length ? {$or: conditions} : {}
+
+
+    // const filterOptions: any = {
+    //   $or: [
+    //     {login: {$regex: searchLoginTerm ?? '', $options: 'i'}},
+    //     {email: {$regex: searchEmailTerm ?? '', $options: 'i'}},
+    //   ]
+    // }
+
     const filterOptions = {
-      ...(searchLoginTerm && {login: new RegExp(searchLoginTerm, 'i')}),
-      ...(searchEmailTerm && {email: new RegExp(searchEmailTerm, 'i')})
+      searchLoginTerm,
+      searchEmailTerm
     }
 
     const skipCount = (pageNumber - 1) * pageSize
@@ -27,9 +47,9 @@ export const usersService = {
 
     const usersFindOptions: FindOptions = {
       projection: {_id: 0, password: 0, passwordHash: 0, passwordSalt: 0},
+      sort: {[sortBy]: sortDirection},
       skip: skipCount,
       limit: pageSize,
-      sort: {[sortBy]: sortDirection}
     }
     const users = await usersRepository.getAllUsers(filterOptions, usersFindOptions)
 

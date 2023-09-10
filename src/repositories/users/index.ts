@@ -4,7 +4,21 @@ import {IUser} from "../../interfaces";
 
 export const usersRepository = {
   getAllUsers(filterOptions: any, findOptions: FindOptions) {
-    return usersCollection.find(filterOptions, findOptions).toArray()
+    const conditions = []
+
+    if (filterOptions.searchLoginTerm) {
+      conditions.push({login: {$regex: filterOptions.searchLoginTerm, $options: 'i'}})
+    }
+
+    if (filterOptions.searchEmailTerm) {
+      conditions.push({email: {$regex: filterOptions.searchEmailTerm, $options: 'i'}})
+    }
+
+    const filter = conditions.length
+      ? {$or: conditions}
+      : {}
+
+    return usersCollection.find(filter, findOptions).toArray()
   },
   /// may be add to usersQueryRepository
   findUserByLoginOrEmail(loginOrEmail: string) {
