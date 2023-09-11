@@ -1,10 +1,14 @@
 import express, {Request, Response} from 'express'
-import {blogsCollection, postsCollection, runDb, usersCollection} from "./db/db";
+import {blogsCollection, commentsCollection, postsCollection, runDb, usersCollection} from "./db/db";
 import {blogsDb, postsDb} from "./db/mock_data";
 import {authRouter} from "./routes/auth";
 import {blogsRouter} from "./routes/blogs";
+import {commentsRouter} from "./routes/comments";
 import {postsRouter} from "./routes/posts";
 import {usersRouter} from "./routes/users";
+
+// userViewType - front
+// userDbType - back
 
 export const app = express()
 app.use(express.json())
@@ -16,6 +20,7 @@ app.delete('/testing/all-data', async (req: Request, res: Response) => {
   await blogsCollection.deleteMany({})
   await postsCollection.deleteMany({})
   await usersCollection.deleteMany({})
+  await commentsCollection.deleteMany({})
   res.sendStatus(204)
 })
 
@@ -23,6 +28,7 @@ app.use('/blogs', blogsRouter)
 app.use('/posts', postsRouter)
 app.use('/users', usersRouter)
 app.use('/auth', authRouter)
+app.use('/comments', commentsRouter)
 
 
 

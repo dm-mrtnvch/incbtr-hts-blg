@@ -1,11 +1,18 @@
-import {Response, Router} from "express";
+import {Request, Response, Router} from "express";
 import {body, param, query} from "express-validator";
 import {SortDirection, UUID} from "mongodb";
 import {errorsValidation, sortDirectionValueOrUndefined, toNumberOrUndefined} from "../../helpers/utils";
-import {RequestWithBody, RequestWithParams, RequestWithParamsAndBody, RequestWithQuery} from "../../interfaces";
-import {BasicAuthMiddleware} from "../../middlewares/middlewares";
+import {
+  RequestWithBody,
+  RequestWithParams,
+  RequestWithParamsAndBody,
+  RequestWithParamsAndQuery,
+  RequestWithQuery
+} from "../../interfaces";
+import {BasicAuthMiddleware, TokenAuthMiddleware} from "../../middlewares/middlewares";
 import {blogsQueryRepository} from "../../repositories/blogs/query";
 import {postsQueryRepository} from "../../repositories/posts/query";
+import {commentsService} from "../../services/comments.service";
 import {postsService} from "../../services/posts.service";
 
 
@@ -33,15 +40,15 @@ postsRouter.get('/',
 
 postsRouter.get('/:id',
   async (req: RequestWithParams<{ id: string }>, res: Response) => {
-  const {id} = req.params
-  const post = await postsQueryRepository.getPostById(id)
+    const {id} = req.params
+    const post = await postsQueryRepository.getPostById(id)
 
-  if (post) {
-    res.send(post)
-  } else {
-    res.sendStatus(404)
-  }
-})
+    if (post) {
+      res.send(post)
+    } else {
+      res.sendStatus(404)
+    }
+  })
 
 postsRouter.post('/',
   BasicAuthMiddleware,
@@ -132,4 +139,53 @@ postsRouter.delete('/:id',
     } else {
       res.sendStatus(404)
     }
+  })
+
+postsRouter.post('/:postId/comments',
+  TokenAuthMiddleware,
+  body('content').notEmpty().trim().isLength({min: 20, max: 300}),
+  async (req: RequestWithParamsAndBody<{ postId: string }, { content: string }>, res: Response) => {
+
+    const {postId} = req.params
+    const {content} = req.body
+
+    const errors = errorsValidation(req, res)
+    if (errors?.errorsMessages?.length) {
+      res.status(400).send(errors)
+      return
+    }
+
+    const post = await postsQueryRepository.getPostById(postId)
+
+    if (!post) {
+      res.sendStatus(404)
+      return
+    }
+    if (req.user) {
+      const newComment = await commentsService.createComment(content, {
+        userId: req.user.id,
+        userLogin: req.user.login
+      }, postId)
+      res.status(201).send(newComment)
+      return
+    } else {
+      res.sendStatus(401)
+    }
+  })
+
+/// is id ok here or better postId
+postsRouter.get('/:postId/comments',
+  query('pageNumber').customSanitizer(toNumberOrUndefined),
+  query('pageSize').customSanitizer(toNumberOrUndefined),
+  query('sortDirection').customSanitizer(sortDirectionValueOrUndefined),
+  (req: RequestWithParamsAndQuery<
+    { postId: string },
+    {
+      pageNumber?: number,
+      pageSize?: number,
+      sortBy?: string,
+      sortDirection?: SortDirection
+    }>, res: Response) => {
+
+
   })

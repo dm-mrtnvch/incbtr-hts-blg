@@ -89,12 +89,18 @@ export const usersService = {
   async checkCredentials(loginOrEmail: string, password: string) {
 
     const user: any = await usersRepository.findUserByLoginOrEmail(loginOrEmail)
+
     if(!user){
       return false
     }
     const passwordHash = await this._generateHash(password, user.passwordSalt)
 
-    return passwordHash === user.passwordHash
+
+    if(passwordHash === user.passwordHash) {
+      return user.id
+    } else {
+      return false
+    }
   },
   async _generateHash(password: string, passwordSalt: string) {
    return await bcrypt.hash(password, passwordSalt)

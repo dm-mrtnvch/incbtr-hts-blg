@@ -14,6 +14,7 @@ export const blogsCollection = client.db().collection<IBlog>('blogs')
 export const postsCollection = client.db().collection<IPost>('posts')
 export const usersCollection = client.db().collection<IUser>('users')
 export const authCollection = client.db().collection('auth')
+export const commentsCollection = client.db().collection('comments')
 
 
 export const runDb = async () => {

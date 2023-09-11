@@ -1,15 +1,17 @@
+import {Filter} from "mongodb";
 import {usersCollection} from "../../db/db";
+import {IUser} from "../../interfaces";
 
 export const usersQueryRepository = {
   getAllUsersCount(filterOptions: any) {
-    const conditions = []
+    const conditions: Filter<IUser> = []
 
     if (filterOptions.searchLoginTerm) {
       conditions.push({login: {$regex: filterOptions.searchLoginTerm, $options: 'i'}})
     }
 
     if (filterOptions.searchEmailTerm) {
-      conditions.push({email: {$regex: filterOptions.searchEmailTerm, $options: 'i'}})
+      conditions.push({password: {$regex: filterOptions.searchEmailTerm, $options: 'i'}})
     }
 
     const filter = conditions.length

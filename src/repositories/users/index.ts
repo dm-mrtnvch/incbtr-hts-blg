@@ -4,6 +4,8 @@ import {IUser} from "../../interfaces";
 
 export const usersRepository = {
   getAllUsers(filterOptions: any, findOptions: FindOptions) {
+
+    // refactor
     const conditions = []
 
     if (filterOptions.searchLoginTerm) {
