@@ -3,6 +3,7 @@ import {body} from "express-validator";
 import {jwtService} from "../../application/jwt/jwt.service";
 import {errorsValidation} from "../../helpers/utils";
 import {RequestWithBody} from "../../interfaces";
+import {TokenAuthMiddleware} from "../../middlewares/middlewares";
 import {usersService} from "../../services/users.service";
 
 export const authRouter = Router()
@@ -15,17 +16,24 @@ authRouter.post('/login',
     const {loginOrEmail, password} = req.body
 
     const errors = errorsValidation(req, res)
-    if(errors?.errorsMessages?.length){
+    if (errors?.errorsMessages?.length) {
       res.status(400).send(errors)
       return
     }
 
     const userId = await usersService.checkCredentials(loginOrEmail, password)
 
-    if(userId){
+    if (userId) {
       const token = await jwtService.createJwt(userId)
       res.status(201).send(token)
     } else {
       res.sendStatus(401)
     }
+  })
+
+authRouter.get('/me',
+  TokenAuthMiddleware,
+  (req: Request, res: Response) => {
+
+
   })

@@ -11,7 +11,9 @@ import {
 } from "../../interfaces";
 import {BasicAuthMiddleware, TokenAuthMiddleware} from "../../middlewares/middlewares";
 import {blogsQueryRepository} from "../../repositories/blogs/query";
+import {commentsQueryRepository} from "../../repositories/comments/query";
 import {postsQueryRepository} from "../../repositories/posts/query";
+import {usersQueryRepository} from "../../repositories/users/query";
 import {commentsService} from "../../services/comments.service";
 import {postsService} from "../../services/posts.service";
 
@@ -161,13 +163,16 @@ postsRouter.post('/:postId/comments',
       res.sendStatus(404)
       return
     }
-    if (req.user) {
-      const newComment = await commentsService.createComment(content, {
-        userId: req.user.id,
-        userLogin: req.user.login
-      }, postId)
-      res.status(201).send(newComment)
-      return
+
+    if (req.userId) {
+      const user = await usersQueryRepository.getUserById(req.userId)
+
+      if (user) {
+        // send as object when 4 params?
+        const newComment = await commentsService.createComment(content, user.id, user.login, postId)
+        res.status(201).send(newComment)
+        return
+      }
     } else {
       res.sendStatus(401)
     }
@@ -178,7 +183,7 @@ postsRouter.get('/:postId/comments',
   query('pageNumber').customSanitizer(toNumberOrUndefined),
   query('pageSize').customSanitizer(toNumberOrUndefined),
   query('sortDirection').customSanitizer(sortDirectionValueOrUndefined),
-  (req: RequestWithParamsAndQuery<
+  async (req: RequestWithParamsAndQuery<
     { postId: string },
     {
       pageNumber?: number,
@@ -187,5 +192,17 @@ postsRouter.get('/:postId/comments',
       sortDirection?: SortDirection
     }>, res: Response) => {
 
+  const {postId} = req.params
+  const {pageNumber, pageSize, sortBy, sortDirection} = req.query
 
+    const post = await postsQueryRepository.getPostById(postId)
+
+    if(!post){
+      res.sendStatus(404)
+      return
+    }
+
+    const comments = await commentsService.getCommentsByPostId(postId, pageNumber, pageSize, sortBy, sortDirection)
+
+    res.send(comments)
   })

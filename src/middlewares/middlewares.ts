@@ -29,13 +29,11 @@ export const TokenAuthMiddleware = async (req: Request, res: Response, next: Nex
   }
 
   const user =  await usersQueryRepository.getUserById(userId)
-  console.log('qqqq', user)
+
   if(!user) {
     res.sendStatus(401)
     return
   }
-
-  req.user = user
+  req.userId = userId
   next()
-
 }
