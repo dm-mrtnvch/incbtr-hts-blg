@@ -3,7 +3,10 @@ import {UUID} from "mongodb";
 
 export const jwtService = {
   async createJwt(userId: any) {
-    return jwt.sign({userId}, '123', {expiresIn: '2 days'})
+    const token = jwt.sign({userId}, '123', {expiresIn: '2 days'})
+    return {
+      accessToken: token
+    }
   },
   async getUserIdByToken(token: string) {
     try {

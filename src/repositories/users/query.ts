@@ -11,7 +11,7 @@ export const usersQueryRepository = {
     }
 
     if (filterOptions.searchEmailTerm) {
-      conditions.push({password: {$regex: filterOptions.searchEmailTerm, $options: 'i'}})
+      conditions.push({email: {$regex: filterOptions.searchEmailTerm, $options: 'i'}})
     }
 
     const filter = conditions.length
