@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer";
 
 export const emailAdapter = {
-  async sendEmail () {
+  async sendEmailConfirmationMessage (email: string) {
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
       auth: {
@@ -12,7 +12,7 @@ export const emailAdapter = {
 
     const info = await transporter.sendMail({
       from: '"Incbtr ✉️" <idmvshn@gmail.com>', // sender address
-      to: "dmvshn@gmail.com", // list of receivers
+      to: email, // list of receivers
       subject: "Incbtr app registration ", // Subject line
       html: " <h1>Thank for your registration</h1>\n" +
         " <p>To finish registration please follow the link below:\n" +

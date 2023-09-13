@@ -5,6 +5,7 @@ import {errorsValidation} from "../../helpers/utils";
 import {RequestWithBody} from "../../interfaces";
 import {TokenAuthMiddleware} from "../../middlewares/middlewares";
 import {emailAdapter} from "../../adapters/emailAdapter";
+import {authService} from "../../services/auth.service";
 import {usersService} from "../../services/users.service";
 import nodemailer from 'nodemailer'
 
@@ -43,8 +44,13 @@ authRouter.get('/me',
 authRouter.post('/registration',
   async (req: RequestWithBody<{ login: string, password: string, email: string }>, res: Response) => {
 
-    const {login, password, email} = req.body
+    const {login, email, password } = req.body
 
-    const test = await emailAdapter.sendEmail()
+    const user = await authService.createUser(login, email, password)
 
+    if(user) {
+      res.send(204)
+    } else {
+      res.send(400)
+    }
   })
