@@ -4,7 +4,9 @@ import {jwtService} from "../../application/jwt/jwt.service";
 import {errorsValidation} from "../../helpers/utils";
 import {RequestWithBody} from "../../interfaces";
 import {TokenAuthMiddleware} from "../../middlewares/middlewares";
+import {emailAdapter} from "../../adapters/emailAdapter";
 import {usersService} from "../../services/users.service";
+import nodemailer from 'nodemailer'
 
 export const authRouter = Router()
 
@@ -35,5 +37,14 @@ authRouter.get('/me',
   TokenAuthMiddleware,
   (req: Request, res: Response) => {
 
+
+  })
+
+authRouter.post('/registration',
+  async (req: RequestWithBody<{ login: string, password: string, email: string }>, res: Response) => {
+
+    const {login, password, email} = req.body
+
+    const test = await emailAdapter.sendEmail()
 
   })

@@ -29,8 +29,6 @@ export const commentsService = {
     sortDirection: SortDirection = 'desc',
   ) {
 
-
-
     const skipCount = (pageNumber - 1) * pageSize
     const filterOptions = {
       postId

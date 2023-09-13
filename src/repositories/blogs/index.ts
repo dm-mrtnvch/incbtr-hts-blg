@@ -5,15 +5,13 @@ import {IBlog, IPost} from "../../interfaces";
 import {postsRepository} from "../posts";
 
 export const blogsRepository = {
-  async getAllBlogs(filterOptions: any, blogsFindOptions: FindOptions): Promise<IBlog[]> {
+  async getAllBlogs(filterOptions: Filter<IBlog>, blogsFindOptions: FindOptions): Promise<IBlog[]> {
     return blogsCollection.find(filterOptions, blogsFindOptions).toArray()
   },
   async getBlogPostsById(blogId: string, postsFindOptions: FindOptions) {
     return  await postsCollection.find({blogId}, postsFindOptions).toArray()
   },
   // !! use query repository for get
-
-
   async createBlog(newBlog: IBlog): Promise<IBlog> {
     await blogsCollection.insertOne({...newBlog})
 
