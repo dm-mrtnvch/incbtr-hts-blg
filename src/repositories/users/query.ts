@@ -22,5 +22,11 @@ export const usersQueryRepository = {
   },
   getUserById(id: string) {
     return usersCollection.findOne({id}, {projection: {password: 0}})
-  }
+  },
+  findUserByLogin(login: string, email?: string) {
+    return usersCollection.findOne({'accountData.login': login}, {projection: {_id: 0}})
+  },
+  findUserByEmail(email: string) {
+    return usersCollection.findOne({'accountData.email': email}, {projection: {_id: 0}})
+  },
 }
