@@ -3,6 +3,9 @@ import {validationResult} from "express-validator";
 import {SortDirection} from "mongodb";
 
 export const urlPattern = /^https:\/\/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/?$/
+export const emailPattern = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/
+export const passwordPattern = /^[a-zA-Z0-9_-]*$/
+
 
 export const toNumberOrUndefined = (value: any): number | undefined => {
   const num = Number(value);

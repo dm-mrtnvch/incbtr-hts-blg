@@ -26,9 +26,19 @@ export const usersRepository = {
   findUserByLoginOrEmail(loginOrEmail: string) {
     return usersCollection.findOne({$or: [{login: loginOrEmail}, {email: loginOrEmail}]})
   },
+  findUserByConfirmationCode(confirmationCode: string) {
+    return usersCollection.findOne({'emailConfirmation.confirmationCode': confirmationCode}, {projection: {_id: 0}})
+  },
   async createUser(newUser: any) {
     await usersCollection.insertOne({...newUser})
     return newUser
+  },
+  async updateConfirmation(id: string) {
+    const result = await usersCollection.updateOne({id}, {
+      $set: {'emailConfirmation.isConfirmed': true}
+    })
+
+    return !!result.modifiedCount
   },
   async deleteUserById(id: string) {
     const response = await usersCollection.deleteOne({id})

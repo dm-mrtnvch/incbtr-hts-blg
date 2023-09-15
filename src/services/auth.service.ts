@@ -10,7 +10,7 @@ export const authService = {
   async createUser(login: string, email: string, password: string) {
 
     const passwordSalt = await bcrypt.genSalt(10)
-    // const passwordHash = this._generateHash(password, passwordSalt)
+    const passwordHash = this._generateHash(password, passwordSalt)
 
 
     const newUser = {
@@ -18,13 +18,13 @@ export const authService = {
       accountData: {
         login,
         email,
-        passwordHash: 1,
+        passwordHash,
         passwordSalt,
         createdAt: new Date().toISOString()
       },
       emailConfirmation: {
         confirmationCode: uuidv4(),
-        exprationDate: add(new Date(), {
+        expirationDate: add(new Date(), {
           days: 30
         }),
         isConfirmed: false
@@ -36,12 +36,26 @@ export const authService = {
     try {
       await emailAdapter.sendEmailConfirmationMessage(email)
     } catch (error) {
-      console.log('sendEmailConfirmationMessage error', error)
       await usersRepository.deleteUserById(createdUser.id)
       return null
     }
 
     return createdUser
+  },
+  async confirmEmail(code: string) {
+    const user = await usersRepository.findUserByConfirmationCode(code)
+
+    if (!user) return false
+    if (user.emailConfirmation.isConfirmed) {
+      return false
+    }
+    if (user.emailConfirmation.confirmationCode !== code) {
+      return false
+    }
+    if (new Date() > user.emailConfirmation.expirationDate) {
+      return false
+    }
+    return await usersRepository.updateConfirmation(user.id)
   },
   async _generateHash(password: string, passwordSalt: string) {
     return await bcrypt.hash(password, passwordSalt)
