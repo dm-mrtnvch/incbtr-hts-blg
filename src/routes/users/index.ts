@@ -44,7 +44,7 @@ usersRouter.post('/',
       return
     }
 
-    const newUser = await usersService.createUserByRegistration(login, password, email)
+    const newUser = await usersService.createUserBySuperAdmin(login, password, email)
     res.status(201).send(newUser)
   })
 

@@ -11,7 +11,7 @@ import {
   RequestWithParamsAndBody,
   RequestWithParamsAndQuery, RequestWithQuery
 } from "../../interfaces";
-import {BasicAuthMiddleware} from "../../middlewares/middlewares";
+import {BasicAuthMiddleware, TokenAuthMiddleware} from "../../middlewares/middlewares";
 import {blogsRepository} from "../../repositories/blogs";
 
 

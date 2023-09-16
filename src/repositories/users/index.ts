@@ -1,6 +1,7 @@
 import {FindOptions} from "mongodb";
 import {usersCollection} from "../../db/db";
 import {IUser} from "../../interfaces";
+import {v4 as uuidv4} from "uuid";
 
 export const usersRepository = {
   getAllUsers(filterOptions: any, findOptions: FindOptions) {
@@ -40,6 +41,16 @@ export const usersRepository = {
 
     return !!result.modifiedCount
   },
+  async updateConfirmationCode(id: string) {
+    const newConfirmationCode = uuidv4()
+
+    const result = await usersCollection.updateOne({id}, {
+      $set: {'emailConfirmation.confirmationCode': newConfirmationCode}
+    })
+
+    return result
+  },
+
   async deleteUserById(id: string) {
     const response = await usersCollection.deleteOne({id})
     return !!response.deletedCount

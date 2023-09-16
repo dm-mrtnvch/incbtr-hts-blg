@@ -20,8 +20,8 @@ export const usersQueryRepository = {
 
     return usersCollection.countDocuments(filter)
   },
-  getUserById(id: string) {
-    return usersCollection.findOne({id}, {projection: {password: 0}})
+  getUserById(id: string): any {
+    return usersCollection.findOne({id}, {projection: {password: 0, _id: 0}})
   },
   findUserByLogin(login: string, email?: string) {
     return usersCollection.findOne({'accountData.login': login}, {projection: {_id: 0}})

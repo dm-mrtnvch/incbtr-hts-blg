@@ -27,6 +27,7 @@ authRouter.post('/login',
 
     if (userId) {
       const response = await jwtService.createJwt(userId)
+      console.log('jwtService.createJwt', response)
       res.send(response)
     } else {
       res.sendStatus(401)
@@ -92,8 +93,9 @@ authRouter.post('/registration',
   })
 
 authRouter.post('/registration-confirmation',
-  body('code').notEmpty().trim().custom((code) => {
-    const user = usersRepository.findUserByConfirmationCode(code)
+  body('code').notEmpty().trim().custom(async (code) => {
+    const user = await usersRepository.findUserByConfirmationCode(code)
+
     if (user.emailConfirmation.isConfirmed) {
       throw new Error('already confirmed')
     }
@@ -147,6 +149,4 @@ authRouter.post('/registration-email-resending',
     } else {
       res.sendStatus(400)
     }
-
-    console.log('re', resendEmailResult)
   })
