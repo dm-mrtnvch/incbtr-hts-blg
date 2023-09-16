@@ -169,7 +169,7 @@ postsRouter.post('/:postId/comments',
 
       if (user) {
         // send as object when 4 params?
-        const newComment = await commentsService.createComment(content, user.id, user.login, postId)
+        const newComment = await commentsService.createComment(content, user.id, user.accountData.login, postId)
         res.status(201).send(newComment)
         return
       }
