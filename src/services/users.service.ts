@@ -1,6 +1,8 @@
+import add from "date-fns/add";
 import {Filter, FindOptions, SortDirection, UUID} from "mongodb";
+import {emailAdapter} from "../adapters/emailAdapter";
 import {usersCollection} from "../db/db";
-import {IUser} from "../interfaces";
+import {EmailConfirmationType, IUser, IUserDb, IUserView} from "../interfaces";
 import {usersRepository} from "../repositories/users";
 import {usersQueryRepository} from "../repositories/users/query";
 import {v4 as uuidv4} from "uuid";
@@ -61,39 +63,42 @@ export const usersService = {
       items: users
     }
   },
-  async createUser(login: string, password: string, email: string) {
-
-    const passwordSalt = await bcrypt.genSalt(10)
-    const passwordHash = await this._generateHash(password, passwordSalt)
-
-    const newUser = {
-      id: uuidv4(),
-      login,
-      passwordHash,
-      passwordSalt,
-      email,
-      createdAt: new Date().toISOString()
+  async createUserBySuperAdmin(login: string, password: string, email: string) {
+    const emailConfirmation: EmailConfirmationType = {
+      confirmationCode: null,
+      expirationDate: null,
+      isConfirmed: true
     }
-
-    const response: any = await usersRepository.createUser(newUser)
+    const user = await this._createUser(login, password, email, emailConfirmation)
     return {
-      id: response.id,
-      login,
-      email,
-      createdAt: response.createdAt
+      id: user.id,
+      login: user.accountData.login,
+      email: user.accountData.email,
+      createdAt: user.accountData.createdAt
     }
   },
+
+  async createUserByRegistration(login: string, password: string, email: string){
+    const emailConfirmation: EmailConfirmationType = {
+      confirmationCode: uuidv4(),
+      expirationDate: add(new Date(), {days: 30}),
+      isConfirmed: false
+    }
+    return this._createUser(login, password, email, emailConfirmation)
+  },
+
   async deleteUserById(id: string) {
     return usersRepository.deleteUserById(id)
   },
   async checkCredentials(loginOrEmail: string, password: string) {
-
     const user: any = await usersRepository.findUserByLoginOrEmail(loginOrEmail)
 
     if (!user) { return false }
 
-    const passwordHash = await this._generateHash(password, user.passwordSalt)
-
+    if (!user.emailConfirmation.isConfirmed) {
+      return false
+    }
+    const passwordHash = await this._generateHash(password, user.accountData.passwordSalt)
 
     if (passwordHash === user.passwordHash) {
       return user.id
@@ -103,5 +108,34 @@ export const usersService = {
   },
   async _generateHash(password: string, passwordSalt: string) {
     return await bcrypt.hash(password, passwordSalt)
-  }
+  },
+  async _createUser(login: string, password: string, email: string, emailConfirmation: EmailConfirmationType) {
+    const passwordSalt = await bcrypt.genSalt(10)
+    const passwordHash = await this._generateHash(password, passwordSalt)
+
+    const newUser: IUserDb = {
+      id: uuidv4(),
+      accountData: {
+        login,
+        email,
+        passwordHash,
+        passwordSalt,
+        createdAt: new Date().toISOString()
+      },
+      emailConfirmation
+    }
+
+    const createdUser = await usersRepository.createUser(newUser)
+
+    if(createdUser.emailConfirmation.confirmationCode){
+      try {
+        await emailAdapter.sendEmailConfirmationMessage(email)
+      } catch (error) {
+        await usersRepository.deleteUserById(createdUser.id)
+        return null
+      }
+    } else {
+      return createdUser
+    }
+  },
 }

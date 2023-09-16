@@ -26,7 +26,12 @@ export const usersQueryRepository = {
   findUserByLogin(login: string, email?: string) {
     return usersCollection.findOne({'accountData.login': login}, {projection: {_id: 0}})
   },
-  findUserByEmail(email: string) {
+  findUserByEmail(email: string): any {
     return usersCollection.findOne({'accountData.email': email}, {projection: {_id: 0}})
+  },
+  findUserByLoginOrEmail(loginOrEmail: string) {
+    return usersCollection.findOne(
+      {$or: [{'accountData.login': loginOrEmail}, {'accountData.email': loginOrEmail}]},
+      {projection: {_id: 0}})
   },
 }

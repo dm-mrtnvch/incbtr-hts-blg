@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import {v4 as uuidv4} from 'uuid';
 import add from 'date-fns/add'
 import {emailAdapter} from "../adapters/emailAdapter";
+import {IUserDb} from "../interfaces";
 import {usersRepository} from "../repositories/users";
 import {usersQueryRepository} from "../repositories/users/query";
 import {usersService} from "./users.service";
@@ -14,7 +15,7 @@ export const authService = {
     const passwordHash = await this._generateHash(password, passwordSalt)
 
 
-    const newUser = {
+    const newUser: IUserDb = {
       id: uuidv4(),
       accountData: {
         login,
@@ -64,11 +65,28 @@ export const authService = {
     if(user.emailConfirmation.isConfirmed) { return false}
 
     if (user) {
-      return  await emailAdapter.sendEmailConfirmationMessage(email)
+      return  emailAdapter.sendEmailConfirmationMessage(email)
     } else {
       return false
     }
 
+  },
+  async checkCredentials(loginOrEmail: string, password: string) {
+    const user: any = await usersQueryRepository.findUserByLoginOrEmail(loginOrEmail)
+
+    if (!user) { return false }
+
+    if (!user.emailConfirmation.isConfirmed) {
+      return false
+    }
+
+    const passwordHash = await this._generateHash(password, user.accountData.passwordSalt)
+
+    if (passwordHash === user.accountData.passwordHash) {
+      return user.id
+    } else {
+      return false
+    }
   },
   async _generateHash(password: string, passwordSalt: string) {
     return await bcrypt.hash(password, passwordSalt)

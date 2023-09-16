@@ -27,6 +27,36 @@ export interface IUser {
   createdAt: string
 }
 
+export type AccountData = {
+  login: string
+  email: string
+  passwordHash: string
+  passwordSalt: string
+  createdAt: string
+}
+
+export type EmailConfirmationType = {
+  confirmationCode: string | null
+  expirationDate: Date | null
+  isConfirmed: boolean
+}
+
+export type IUserDb = {
+  id: string
+  accountData: AccountData
+  emailConfirmation: EmailConfirmationType
+}
+
+
+
+export interface IUserView {
+  id: string
+  login: string
+  password: string
+  email: string
+  createdAt: string
+}
+
 export type RequestWithParams<P>  = Request<P, {}, {}, {}>
 export type RequestWithBody<B> = Request<{}, {}, B, {}>
 export type RequestWithQuery<Q> = Request<{}, {}, {}, Q>

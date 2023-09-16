@@ -1,25 +1,20 @@
-import {el, th} from "date-fns/locale";
-import {Router, Response, Request} from "express";
+import {Request, Response, Router} from "express";
 import {body} from "express-validator";
 import {jwtService} from "../../application/jwt/jwt.service";
 import {emailPattern, errorsValidation, passwordPattern} from "../../helpers/utils";
 import {RequestWithBody} from "../../interfaces";
 import {TokenAuthMiddleware} from "../../middlewares/middlewares";
-import {emailAdapter} from "../../adapters/emailAdapter";
-import {blogsQueryRepository} from "../../repositories/blogs/query";
 import {usersRepository} from "../../repositories/users";
 import {usersQueryRepository} from "../../repositories/users/query";
 import {authService} from "../../services/auth.service";
 import {usersService} from "../../services/users.service";
-import nodemailer from 'nodemailer'
 
 export const authRouter = Router()
 
 authRouter.post('/login',
-  body('loginOrEmail').notEmpty().trim().isLength({min: 1}),
-  body('password').notEmpty().trim().isLength({min: 1}),
-  // async (req: RequestWithBody<{ loginOrEmail: string, password: string }>, res: Response) => {
-  async (req: Request, res: Response) => {
+  body('loginOrEmail').notEmpty().trim(),
+  body('password').notEmpty().trim(),
+  async (req: RequestWithBody<{ loginOrEmail: string, password: string }>, res: Response) => {
     const {loginOrEmail, password} = req.body
 
     const errors = errorsValidation(req, res)
@@ -28,7 +23,7 @@ authRouter.post('/login',
       return
     }
 
-    const userId = await usersService.checkCredentials(loginOrEmail, password)
+    const userId = await authService.checkCredentials(loginOrEmail, password)
 
     if (userId) {
       const response = await jwtService.createJwt(userId)
@@ -68,14 +63,14 @@ authRouter.post('/registration',
         throw new Error('login is busy');
       }
     }).withMessage('this login is already exist'),
-  body('password').notEmpty().trim().isLength({min: 6, max: 30}).matches(passwordPattern),
+  body('password').notEmpty().trim().isLength({min: 6, max: 20}).matches(passwordPattern),
   body('email').notEmpty().trim().isEmail().matches(emailPattern)
     .custom(async (email) => {
       const userWithEmail = await usersQueryRepository.findUserByEmail(email)
       if (userWithEmail) {
         throw new Error('email is busy')
       }
-    }).withMessage('this login is already exist'),
+    }).withMessage('this email is already exist'),
   async (req: RequestWithBody<{ login: string, password: string, email: string }>, res: Response) => {
 
     const errors = errorsValidation(req, res)
@@ -87,7 +82,7 @@ authRouter.post('/registration',
     const {login, email, password} = req.body
 
 
-    const user = await authService.createUser(login, email, password)
+    const user = await usersService.createUserByRegistration(login, email, password)
 
     if (user) {
       res.sendStatus(204)
@@ -99,7 +94,7 @@ authRouter.post('/registration',
 authRouter.post('/registration-confirmation',
   body('code').notEmpty().trim().custom((code) => {
     const user = usersRepository.findUserByConfirmationCode(code)
-    if(user.emailConfirmation.isConfirmed) {
+    if (user.emailConfirmation.isConfirmed) {
       throw new Error('already confirmed')
     }
   }).withMessage('user is already confirmed'),
@@ -130,7 +125,7 @@ authRouter.post('/registration-email-resending',
         throw new Error('no email')
       }
 
-      if(user.emailConfirmation.isConfirmed) {
+      if (user.emailConfirmation.isConfirmed) {
         throw new Error('already confirmed')
       }
 
@@ -145,9 +140,9 @@ authRouter.post('/registration-email-resending',
 
     const {email} = req.body
 
-    const resendEmailResult = await authService.resendRegistrationConfirmEmail(email)
+    const resendEmailResult: any = await authService.resendRegistrationConfirmEmail(email)
 
-    if(resendEmailResult.messageId){
+    if (resendEmailResult.messageId) {
       res.sendStatus(204)
     } else {
       res.sendStatus(400)

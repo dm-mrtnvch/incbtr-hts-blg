@@ -26,7 +26,7 @@ export const usersRepository = {
   findUserByLoginOrEmail(loginOrEmail: string) {
     return usersCollection.findOne({$or: [{login: loginOrEmail}, {email: loginOrEmail}]})
   },
-  findUserByConfirmationCode(confirmationCode: string) {
+  findUserByConfirmationCode(confirmationCode: string): any {
     return usersCollection.findOne({'emailConfirmation.confirmationCode': confirmationCode}, {projection: {_id: 0}})
   },
   async createUser(newUser: any) {
