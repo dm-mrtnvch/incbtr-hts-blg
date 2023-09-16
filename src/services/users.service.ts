@@ -78,7 +78,7 @@ export const usersService = {
     }
   },
 
-  async createUserByRegistration(login: string, password: string, email: string){
+  async createUserByRegistration(login: string, password: string, email: string) {
     const emailConfirmation: EmailConfirmationType = {
       confirmationCode: uuidv4(),
       expirationDate: add(new Date(), {days: 30}),
@@ -93,7 +93,9 @@ export const usersService = {
   async checkCredentials(loginOrEmail: string, password: string) {
     const user: any = await usersRepository.findUserByLoginOrEmail(loginOrEmail)
 
-    if (!user) { return false }
+    if (!user) {
+      return false
+    }
 
     if (!user.emailConfirmation.isConfirmed) {
       return false
@@ -127,15 +129,15 @@ export const usersService = {
 
     const createdUser = await usersRepository.createUser(newUser)
 
-    if(createdUser.emailConfirmation.confirmationCode){
+    if (createdUser.emailConfirmation.confirmationCode) {
       try {
-        await emailAdapter.sendEmailConfirmationMessage(email)
+        await emailAdapter.sendEmailConfirmationMessage(email, createdUser.emailConfirmation.confirmationCode)
       } catch (error) {
+        console.log(error)
         await usersRepository.deleteUserById(createdUser.id)
         return null
       }
-    } else {
-      return createdUser
     }
+    return createdUser
   },
 }

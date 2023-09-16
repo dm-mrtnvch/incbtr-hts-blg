@@ -82,7 +82,7 @@ authRouter.post('/registration',
     const {login, email, password} = req.body
 
 
-    const user = await usersService.createUserByRegistration(login, email, password)
+    const user = await usersService.createUserByRegistration(login, password, email)
 
     if (user) {
       res.sendStatus(204)
