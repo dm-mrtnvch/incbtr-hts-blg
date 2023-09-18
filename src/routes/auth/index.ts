@@ -48,6 +48,9 @@ authRouter.post('/logout',
       return
     }
 
+    const userId = jwtService.getUserIdByRefreshToken(refreshTokenFromCookie)
+    if (!userId) return res.sendStatus(401);
+
     const isTokenBlacklisted = await jwtService.isTokenExistInBlackList(refreshTokenFromCookie)
     if (isTokenBlacklisted) {
       res.sendStatus(401)
@@ -55,7 +58,7 @@ authRouter.post('/logout',
     }
 
     await jwtService.addRefreshTokenToBlacklist(refreshTokenFromCookie)
-    res.sendStatus(204)
+    return res.sendStatus(204)
   })
 
 authRouter.get('/me',
@@ -190,10 +193,10 @@ authRouter.post('/refresh-token',
     if (!userId) return res.sendStatus(401);
 
     const isTokenBlacklisted = await jwtService.isTokenExistInBlackList(currentRefreshToken)
-    if (isTokenBlacklisted) return res.sendStatus(401);
+    if (isTokenBlacklisted) return res.sendStatus(402);
 
     const user = usersQueryRepository.getUserById(userId)
-    if (!user) return res.sendStatus(401)
+    if (!user) return res.sendStatus(403)
 
     const newAccessToken = await jwtService.createJwt(userId)
     const newRefreshToken = await jwtService.createRefreshToken(userId)
@@ -201,9 +204,9 @@ authRouter.post('/refresh-token',
     if (newAccessToken && newRefreshToken) {
       await jwtService.addRefreshTokenToBlacklist(req.cookies.refreshToken)
 
-      return res
-        .cookie('refreshToken', newRefreshToken, {httpOnly: true, secure: true})
-        .send(newAccessToken)
+      res.cookie('refreshToken', newRefreshToken, {httpOnly: true, secure: true})
+      res.send(newAccessToken)
+      return
 
     } else {
       return res.sendStatus(401)

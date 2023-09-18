@@ -5,7 +5,7 @@ import {expiredTokensCollection} from "../../db/db";
 export const jwtService = {
   async createJwt(userId: any) {
     try {
-      const token = jwt.sign({userId}, '123', {expiresIn: 10}) // 10 sec
+      const token = jwt.sign({userId}, '123', {expiresIn: 10111}) // 10 sec
       return {
         accessToken: token
       }
@@ -14,7 +14,7 @@ export const jwtService = {
     }
   },
   async createRefreshToken(userId: any) {
-    return jwt.sign({userId}, '456', {expiresIn: 20}) // 20 sec
+    return jwt.sign({userId}, '456', {expiresIn: 2011111}) // 20 sec
   },
   async getUserIdByJwt(token: string) {
     try {
