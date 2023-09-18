@@ -8,6 +8,7 @@ import {usersRepository} from "../../repositories/users";
 import {usersQueryRepository} from "../../repositories/users/query";
 import {authService} from "../../services/auth.service";
 import {usersService} from "../../services/users.service";
+import {v4 as uuidv4} from 'uuid';
 
 export const authRouter = Router()
 
@@ -27,8 +28,13 @@ authRouter.post('/login',
 
     if (userId) {
       const response = await jwtService.createJwt(userId)
-      console.log('jwtService.createJwt', response)
-      res.send(response)
+      const refreshToken = await jwtService.createRefreshToken(userId)
+
+
+      res.cookie('refreshToken', refreshToken, {httpOnly: true, secure: true})
+        .status(204)
+        .send(response)
+
     } else {
       res.sendStatus(401)
     }
@@ -149,4 +155,27 @@ authRouter.post('/registration-email-resending',
     } else {
       res.sendStatus(400)
     }
+  })
+
+authRouter.post('/refresh-token',
+  async (req: Request, res: Response) => {
+    const {refreshToken: refreshTokenFromCookie} = req.cookies
+
+    if (!refreshTokenFromCookie) return res.sendStatus(401);
+    const isJwtVerified = jwtService.verifyRefreshToken(refreshTokenFromCookie)
+    if (!isJwtVerified) return res.sendStatus(401);
+    const user = usersQueryRepository.getUserById(isJwtVerified)
+
+    if (!user) return res.sendStatus(401)
+
+    const response = await jwtService.createJwt(isJwtVerified)
+    const refreshToken = await jwtService.createRefreshToken(isJwtVerified)
+
+
+    return res.cookie('refreshToken', refreshToken, {httpOnly: true, secure: true})
+      .status(204)
+      .send(response)
+
+
+
   })

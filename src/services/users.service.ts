@@ -1,4 +1,5 @@
 import add from "date-fns/add";
+import {ca} from "date-fns/locale";
 import {Filter, FindOptions, SortDirection, UUID} from "mongodb";
 import {emailAdapter} from "../adapters/emailAdapter";
 import {usersCollection} from "../db/db";
@@ -112,32 +113,37 @@ export const usersService = {
     return await bcrypt.hash(password, passwordSalt)
   },
   async _createUser(login: string, password: string, email: string, emailConfirmation: EmailConfirmationType) {
-    const passwordSalt = await bcrypt.genSalt(10)
-    const passwordHash = await this._generateHash(password, passwordSalt)
+    try {
+      const passwordSalt = await bcrypt.genSalt(10)
+      const passwordHash = await this._generateHash(password, passwordSalt)
 
-    const newUser: IUserDb = {
-      id: uuidv4(),
-      accountData: {
-        login,
-        email,
-        passwordHash,
-        passwordSalt,
-        createdAt: new Date().toISOString()
-      },
-      emailConfirmation
-    }
-
-    const createdUser = await usersRepository.createUser(newUser)
-
-    if (createdUser.emailConfirmation.confirmationCode) {
-      try {
-        await emailAdapter.sendEmailConfirmationMessage(email, createdUser.emailConfirmation.confirmationCode)
-      } catch (error) {
-        console.log(error)
-        await usersRepository.deleteUserById(createdUser.id)
-        return null
+      const newUser: any= {
+        id: uuidv4(),
+        accountData: {
+          login,
+          email,
+          passwordHash,
+          passwordSalt,
+          createdAt: new Date().toISOString()
+        },
+        emailConfirmation
       }
+
+      await usersRepository.createUser(newUser)
+
+      if (newUser.emailConfirmation.confirmationCode) {
+        try {
+          await emailAdapter.sendEmailConfirmationMessage(email, newUser.emailConfirmation.confirmationCode)
+        } catch (error) {
+          console.log(error)
+          await usersRepository.deleteUserById(newUser.id)
+          return null
+        }
+      }
+      return newUser
+    } catch (e){
+      console.log(e)
+      return false
     }
-    return createdUser
   },
 }

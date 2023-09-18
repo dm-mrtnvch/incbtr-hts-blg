@@ -1,6 +1,6 @@
+import cookieParser from "cookie-parser";
 import express, {Request, Response} from 'express'
 import {blogsCollection, commentsCollection, postsCollection, runDb, usersCollection} from "./db/db";
-import {blogsDb, postsDb} from "./db/mock_data";
 import {authRouter} from "./routes/auth";
 import {blogsRouter} from "./routes/blogs";
 import {commentsRouter} from "./routes/comments";
@@ -12,6 +12,7 @@ import {usersRouter} from "./routes/users";
 
 export const app = express()
 app.use(express.json())
+app.use(cookieParser())
 const port = process.env.PORT || 3020
 
 console.log('4444')

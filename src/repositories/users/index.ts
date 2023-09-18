@@ -30,9 +30,9 @@ export const usersRepository = {
   findUserByConfirmationCode(confirmationCode: string): any {
     return usersCollection.findOne({'emailConfirmation.confirmationCode': confirmationCode}, {projection: {_id: 0}})
   },
-  async createUser(newUser: any) {
-    await usersCollection.insertOne({...newUser})
-    return newUser
+  async createUser(newUser: any): Promise<any>   {
+    return usersCollection.insertOne({...newUser})
+
   },
   async updateConfirmation(id: string) {
     const result = await usersCollection.updateOne({id}, {

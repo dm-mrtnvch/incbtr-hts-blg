@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+import {ca} from "date-fns/locale";
 import {emailAdapter} from "../adapters/emailAdapter";
 import {usersRepository} from "../repositories/users";
 import {usersQueryRepository} from "../repositories/users/query";
@@ -21,24 +22,33 @@ export const authService = {
     return await usersRepository.updateConfirmation(user.id)
   },
   async resendRegistrationConfirmEmail(email: string) {
-    const user = await usersQueryRepository.findUserByEmail(email)
+    try {
+      const user = await usersQueryRepository.findUserByEmail(email)
 
-    if (user.emailConfirmation.isConfirmed) {
+      if (user.emailConfirmation.isConfirmed) {
+        return false
+      }
+// code string || null
+      //
+      await usersRepository.updateConfirmationCode(user.id)
+      const updatedUser = await usersQueryRepository.getUserById(user.id)
+
+      if (!updatedUser) {
+        return false
+      }
+
+      if (user.emailConfirmation.confirmationCode !== updatedUser.emailConfirmation.confirmationCode) {
+        return await emailAdapter.sendEmailConfirmationMessage(email, updatedUser.emailConfirmation.confirmationCode)
+      } else {
+        return false
+      }
+
+    } catch (e) {
+      console.log(e)
       return false
     }
 
-    await usersRepository.updateConfirmationCode(user.id)
-    const updatedUser = await usersQueryRepository.getUserById(user.id)
 
-    if (!updatedUser) {
-      return false
-    }
-
-    if (user.emailConfirmation.confirmationCode !== updatedUser.emailConfirmation.confirmationCode) {
-      return emailAdapter.sendEmailConfirmationMessage(email, updatedUser.emailConfirmation.confirmationCode)
-    } else {
-      return false
-    }
   },
   async checkCredentials(loginOrEmail: string, password: string) {
     const user: any = await usersQueryRepository.findUserByLoginOrEmail(loginOrEmail)
