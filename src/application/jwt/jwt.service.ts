@@ -9,7 +9,7 @@ export const jwtService = {
     }
   },
   async createRefreshToken(userId: any) {
-    return  jwt.sign({userId}, '456', {expiresIn: '20 seconds'}) // 20 sec
+    return jwt.sign({userId}, '456', {expiresIn: '20 seconds'}) // 20 sec
   },
   async getUserIdByToken(token: string) {
     try {

@@ -31,13 +31,26 @@ authRouter.post('/login',
       const refreshToken = await jwtService.createRefreshToken(userId)
 
 
-      res.cookie('refreshToken', refreshToken, {httpOnly: true, secure: true})
-        .status(204)
+      res
+        .cookie('refreshToken', refreshToken, {httpOnly: true, secure: true})
         .send(response)
 
     } else {
       res.sendStatus(401)
     }
+  })
+
+authRouter.post('/logout',
+  async (req: Request, res: Response) => {
+
+    const refreshTokenFromCookie = req.cookies.refreshToken
+    if(!refreshTokenFromCookie){
+      res.sendStatus(401)
+      return
+    } else {
+      res.sendStatus(204)
+    }
+
   })
 
 authRouter.get('/me',
@@ -48,6 +61,13 @@ authRouter.get('/me',
       res.sendStatus(401)
       return
     }
+
+    const isJwtVerified = jwtService.getUserIdByToken(req.userId)
+    if(!isJwtVerified){
+       res.sendStatus(401)
+      return
+    }
+
 
     const user = await usersQueryRepository.getUserById(req.userId)
     console.log('u', user)
@@ -172,10 +192,8 @@ authRouter.post('/refresh-token',
     const refreshToken = await jwtService.createRefreshToken(isJwtVerified)
 
 
-    return res.cookie('refreshToken', refreshToken, {httpOnly: true, secure: true})
-      .status(204)
+    return res
+      .cookie('refreshToken', refreshToken, {httpOnly: true, secure: true})
       .send(response)
-
-
 
   })
