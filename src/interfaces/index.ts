@@ -1,4 +1,5 @@
 import {Request} from "express";
+import {expiredTokensCollection} from "../db/db";
 
 export interface IBlog {
   id: string
@@ -55,6 +56,10 @@ export interface IUserView {
   password: string
   email: string
   createdAt: string
+}
+
+export interface IExpiredTokens {
+  token: string
 }
 
 export type RequestWithParams<P>  = Request<P, {}, {}, {}>
