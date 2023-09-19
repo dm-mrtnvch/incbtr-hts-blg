@@ -34,7 +34,7 @@ export const usersRepository = {
     return usersCollection.insertOne({...newUser})
 
   },
-  async updateConfirmation(id: string) {
+  async updateConfirmation(id: string): Promise<boolean> {
     const result = await usersCollection.updateOne({id}, {
       $set: {'emailConfirmation.isConfirmed': true}
     })

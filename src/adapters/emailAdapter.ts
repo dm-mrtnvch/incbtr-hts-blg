@@ -1,8 +1,7 @@
-import nodemailer from "nodemailer";
-import {v4 as uuidv4} from 'uuid';
+import nodemailer, {SentMessageInfo} from "nodemailer";
 
 export const emailAdapter = {
-  async sendEmailConfirmationMessage(email: string, confirmationCode: string) {
+  async sendEmailConfirmationMessage(email: string, confirmationCode: string): Promise<SentMessageInfo> {
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
       auth: {

@@ -1,11 +1,11 @@
 import jwt from 'jsonwebtoken'
 import {UUID} from "mongodb";
 import {expiredTokensCollection} from "../../db/db";
-
+const accessTokenSecret = '123'
 export const jwtService = {
-  async createJwt(userId: any) {
+  async createJwt(userId: string) {
     try {
-      const token = jwt.sign({userId}, '123', {expiresIn: 10}) // 10 sec
+      const token = jwt.sign({userId}, accessTokenSecret, {expiresIn: '10s'}) // 10 sec
       return {
         accessToken: token
       }
@@ -14,28 +14,23 @@ export const jwtService = {
     }
   },
   async createRefreshToken(userId: any) {
-    return jwt.sign({userId}, '456', {expiresIn: 20}) // 20 sec
+    return jwt.sign({userId}, '456', {expiresIn: '20s'}) // 20 sec
   },
   async getUserIdByJwt(token: string) {
     try {
-      const result: any = jwt.verify(token, '123')
+      const result: any = jwt.verify(token, accessTokenSecret)
       return result.userId
     } catch (e) {
+      console.log(e)
       return null
     }
   },
   verifyJwt(token: string) {
-    return jwt.verify(token, '123', (err, decoded) => {
-      console.log('decoded', decoded)
-      console.log('error', err)
-    })
+    return jwt.verify(token, '123')
   },
   getUserIdByRefreshToken(token: string) {
     try {
-      const result: any = jwt.verify(token, '456', (err, decoded) => {
-        console.log('decoded', decoded)
-        console.log('error', err)
-      })
+      const result: any = jwt.verify(token, '456')
       return result.userId
     } catch (e) {
       return null
@@ -46,7 +41,7 @@ export const jwtService = {
 
 
   },
-  async isTokenExistInBlackList(token: string) {
+  async isRefreshTokenExistInBlackList(token: string) {
     return expiredTokensCollection.findOne({token})
   }
 }

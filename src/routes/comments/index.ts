@@ -2,7 +2,7 @@ import {Response, Router} from "express";
 import {body} from "express-validator";
 import {errorsValidation} from "../../helpers/utils";
 import {RequestWithParams, RequestWithParamsAndBody} from "../../interfaces";
-import {TokenAuthMiddleware} from "../../middlewares/middlewares";
+import {AccessTokenAuthMiddleware} from "../../middlewares/middlewares";
 import {commentsQueryRepository} from "../../repositories/comments/query";
 import {commentsService} from "../../services/comments.service";
 
@@ -36,7 +36,7 @@ commentsRouter.get('/:id',
   })
 
 commentsRouter.put('/:id',
-  TokenAuthMiddleware,
+  AccessTokenAuthMiddleware,
   body('content').notEmpty().trim().isLength({min: 20, max: 300}),
   async (req: RequestWithParamsAndBody<{ id: string }, { content: string }>, res: Response) => {
     const {id} = req.params
@@ -75,7 +75,7 @@ commentsRouter.put('/:id',
   })
 
 commentsRouter.delete('/:commentId',
-  TokenAuthMiddleware,
+  AccessTokenAuthMiddleware,
   async (req: RequestWithParams<{ commentId: string }>, res: Response) => {
 
     const {commentId} = req.params

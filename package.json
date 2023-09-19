@@ -8,7 +8,8 @@
   "scripts": {
     "dev": "nodemon --inspect dist/index.js",
     "watch": "tsc -w",
-    "jest": "jest"
+    "jest": "jest",
+    "serveo": "ssh -R 80:localhost:3020 serveo.net"
   },
   "dependencies": {
     "@types/bcrypt": "^5.0.0",

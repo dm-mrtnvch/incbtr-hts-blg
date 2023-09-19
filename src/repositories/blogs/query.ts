@@ -13,4 +13,5 @@ export const blogsQueryRepository = {
     return blogsCollection.findOne({id}, {projection: {_id: 0}})
   }
   // getBlogPostsById has logic. can't put it here
+
 }

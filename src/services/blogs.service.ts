@@ -1,6 +1,5 @@
 import {FindOptions, SortDirection} from "mongodb";
 import {v4 as uuidv4} from "uuid";
-import {blogsCollection, postsCollection} from "../db/db";
 import {IBlog, IPost} from "../interfaces";
 import {blogsRepository} from "../repositories/blogs";
 import {blogsQueryRepository} from "../repositories/blogs/query";
@@ -13,7 +12,6 @@ export const blogsService = {
     sortBy: string = 'createdAt',
     sortDirection: SortDirection = 'desc'
 ) {
-
     const skipCount = (pageNumber - 1) * pageSize
     const blogsFindOptions: FindOptions = {
       projection: {_id: 0},
@@ -25,13 +23,7 @@ export const blogsService = {
       ...(searchNameTerm && {name: new RegExp(searchNameTerm, 'i')})
     }
 
-    // c ignat
-    // const filterOptions2 = searchNameTerm
-    //   ? { name: new RegExp(searchNameTerm, 'i')}
-    //   : {}
-
-
-    const blogs = await blogsRepository.getAllBlogs(filterOptions, blogsFindOptions)
+    const blogs: IBlog[] = await blogsRepository.getAllBlogs(filterOptions, blogsFindOptions)
     const totalCount = await blogsQueryRepository.getAllBlogsCount(filterOptions)
     const totalPagesCount = Math.ceil(totalCount / pageSize)
 

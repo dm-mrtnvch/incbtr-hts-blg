@@ -9,7 +9,11 @@ import {
   RequestWithParamsAndQuery,
   RequestWithQuery
 } from "../../interfaces";
-import {BasicAuthMiddleware, TokenAuthMiddleware} from "../../middlewares/middlewares";
+import {
+  BasicAuthMiddleware,
+  AccessTokenAuthMiddleware,
+  RequestErrorsValidationMiddleware
+} from "../../middlewares/middlewares";
 import {blogsQueryRepository} from "../../repositories/blogs/query";
 import {commentsQueryRepository} from "../../repositories/comments/query";
 import {postsQueryRepository} from "../../repositories/posts/query";
@@ -64,6 +68,8 @@ postsRouter.post('/',
     }
   }).withMessage('Specified blog does not exist.'),
   param('blogId').customSanitizer(value => new UUID(value)),
+  RequestErrorsValidationMiddleware,
+
   async (req: RequestWithBody<{
     title: string,
     shortDescription: string,
@@ -72,11 +78,11 @@ postsRouter.post('/',
   }>, res: Response) => {
     const {title, shortDescription, content, blogId} = req.body
 
-    const errors = errorsValidation(req, res)
-    if (errors?.errorsMessages?.length) {
-      res.status(400).send(errors)
-      return
-    }
+    // const errors = errorsValidation(req, res)
+    // if (errors?.errorsMessages?.length) {
+    //   res.status(400).send(errors)
+    //   return
+    // }
 
     const newPost = await postsService.createPost(title, shortDescription, content, blogId)
     if (newPost) {
@@ -97,6 +103,8 @@ postsRouter.put('/:id',
       throw new Error('Blog not found');
     }
   }).withMessage('Specified blog does not exist.'),
+  RequestErrorsValidationMiddleware,
+
 
   async (req: RequestWithParamsAndBody<{ id: string }, {
     title: string,
@@ -114,11 +122,11 @@ postsRouter.put('/:id',
       return
     }
 
-    const errors = errorsValidation(req, res)
-    if (errors?.errorsMessages?.length) {
-      res.status(400).send(errors)
-      return
-    }
+    // const errors = errorsValidation(req, res)
+    // if (errors?.errorsMessages?.length) {
+    //   res.status(400).send(errors)
+    //   return
+    // }
 
     const isUpdated = await postsService.updatePostById(id, title, shortDescription, content, blogId)
 
@@ -144,7 +152,7 @@ postsRouter.delete('/:id',
   })
 
 postsRouter.post('/:postId/comments',
-  TokenAuthMiddleware,
+  AccessTokenAuthMiddleware,
   body('content').notEmpty().trim().isLength({min: 20, max: 300}),
   async (req: RequestWithParamsAndBody<{ postId: string }, { content: string }>, res: Response) => {
 

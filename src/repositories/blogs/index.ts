@@ -1,32 +1,27 @@
 import {Filter, FindOptions} from "mongodb";
-import {v4 as uuidv4} from 'uuid';
 import {blogsCollection, postsCollection} from "../../db/db";
 import {IBlog, IPost} from "../../interfaces";
-import {postsRepository} from "../posts";
 
 export const blogsRepository = {
   async getAllBlogs(filterOptions: Filter<IBlog>, blogsFindOptions: FindOptions): Promise<IBlog[]> {
     return blogsCollection.find(filterOptions, blogsFindOptions).toArray()
   },
-  async getBlogPostsById(blogId: string, postsFindOptions: FindOptions) {
-    return  await postsCollection.find({blogId}, postsFindOptions).toArray()
+  async getBlogPostsById(blogId: string, postsFindOptions: FindOptions): Promise<any> {
+    return await postsCollection.find({blogId}, postsFindOptions).toArray()
   },
   // !! use query repository for get
   async createBlog(newBlog: IBlog): Promise<IBlog> {
     await blogsCollection.insertOne({...newBlog})
-
     return newBlog
   },
-  async createBlogPost(newBlogPost: IPost) {
+  async createBlogPost(newBlogPost: IPost): Promise<IPost> {
     await postsCollection.insertOne({...newBlogPost})
-
     return newBlogPost
   },
   async updateBlogById(id: string, name: string, description: string, websiteUrl: string): Promise<boolean> {
     const isBlogExist = await blogsCollection.findOne({id})
-    if (!isBlogExist) {
-      return false
-    }
+
+    if (!isBlogExist) return false
 
     const response = await blogsCollection.updateOne({id}, {
       $set: {

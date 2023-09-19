@@ -1,20 +1,23 @@
 import {Request, Response, Router} from "express";
-import {body} from "express-validator";
+import {body, checkSchema} from "express-validator";
 import {jwtService} from "../../application/jwt/jwt.service";
 import {emailPattern, errorsValidation, passwordPattern} from "../../helpers/utils";
 import {RequestWithBody} from "../../interfaces";
-import {TokenAuthMiddleware} from "../../middlewares/middlewares";
+import {AccessTokenAuthMiddleware, RefreshTokenAuthMiddleware} from "../../middlewares/middlewares";
 import {usersRepository} from "../../repositories/users";
 import {usersQueryRepository} from "../../repositories/users/query";
 import {authService} from "../../services/auth.service";
 import {usersService} from "../../services/users.service";
-import {v4 as uuidv4} from 'uuid';
 
 export const authRouter = Router()
 
 authRouter.post('/login',
   body('loginOrEmail').notEmpty().trim(),
   body('password').notEmpty().trim(),
+  // checkSchema({
+  //   loginOrEmail: { notEmpty: true, trim: true},
+  //   password: { notEmpty: true, trim: true},
+  // }),
   async (req: RequestWithBody<{ loginOrEmail: string, password: string }>, res: Response) => {
     const {loginOrEmail, password} = req.body
 
@@ -30,7 +33,6 @@ authRouter.post('/login',
       const response = await jwtService.createJwt(userId)
       const refreshToken = await jwtService.createRefreshToken(userId)
 
-
       res
         .cookie('refreshToken', refreshToken, {httpOnly: true, secure: true})
         .send(response)
@@ -41,52 +43,25 @@ authRouter.post('/login',
   })
 
 authRouter.post('/logout',
+  RefreshTokenAuthMiddleware,
   async (req: Request, res: Response) => {
-    const refreshTokenFromCookie = req.cookies.refreshToken
-    if (!refreshTokenFromCookie) {
-      res.sendStatus(401)
-      return
-    }
-
-    const userId = jwtService.getUserIdByRefreshToken(refreshTokenFromCookie)
-    if (!userId) return res.sendStatus(401);
-
-    const isTokenBlacklisted = await jwtService.isTokenExistInBlackList(refreshTokenFromCookie)
-    if (isTokenBlacklisted) {
-      res.sendStatus(401)
-      return
-    }
-
-    await jwtService.addRefreshTokenToBlacklist(refreshTokenFromCookie)
-    return res.sendStatus(204)
+    await jwtService.addRefreshTokenToBlacklist(req.cookies.refreshToken)
+    return res.clearCookie('refreshToken').status(204).send()
   })
 
 authRouter.get('/me',
   /// is refresh requires here?
-  TokenAuthMiddleware,
+  AccessTokenAuthMiddleware,
   async (req: Request, res: Response) => {
-
-    if (!req.userId) {
-      res.sendStatus(401)
-      return
-    }
-
-    const isJwtVerified = jwtService.getUserIdByJwt(req.userId)
-    if (!isJwtVerified) {
-      res.sendStatus(401)
-      return
-    }
     const user = await usersQueryRepository.getUserById(req.userId)
 
-    if (!user) {
-      res.sendStatus(401)
-    } else {
+
       res.send({
         email: user.accountData.email,
         login: user.accountData.login,
         userId: user.id
       })
-    }
+
   })
 
 authRouter.post('/registration',
@@ -185,21 +160,11 @@ authRouter.post('/registration-email-resending',
   })
 
 authRouter.post('/refresh-token',
+  RefreshTokenAuthMiddleware,
   async (req: Request, res: Response) => {
-    const currentRefreshToken = req.cookies.refreshToken
-    if (currentRefreshToken) return res.sendStatus(401)
-
-    const userId = jwtService.getUserIdByRefreshToken(currentRefreshToken)
-    if (!userId) return res.sendStatus(401);
-
-    const isTokenBlacklisted = await jwtService.isTokenExistInBlackList(currentRefreshToken)
-    if (isTokenBlacklisted) return res.sendStatus(402);
-
-    const user = usersQueryRepository.getUserById(userId)
-    if (!user) return res.sendStatus(403)
-
-    const newAccessToken = await jwtService.createJwt(userId)
-    const newRefreshToken = await jwtService.createRefreshToken(userId)
+    console.log(req.userId, 'rt router')
+    const newAccessToken = await jwtService.createJwt(req.userId)
+    const newRefreshToken = await jwtService.createRefreshToken(req.userId)
 
     if (newAccessToken && newRefreshToken) {
       await jwtService.addRefreshTokenToBlacklist(req.cookies.refreshToken)

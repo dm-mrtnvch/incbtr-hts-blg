@@ -1,6 +1,6 @@
 import {Filter} from "mongodb";
 import {usersCollection} from "../../db/db";
-import {IUser} from "../../interfaces";
+import {IUser, IUserDb} from "../../interfaces";
 
 export const usersQueryRepository = {
   getAllUsersCount(filterOptions: any) {
@@ -29,9 +29,9 @@ export const usersQueryRepository = {
   findUserByEmail(email: string): any {
     return usersCollection.findOne({'accountData.email': email}, {projection: {_id: 0}})
   },
-  findUserByLoginOrEmail(loginOrEmail: string) {
+  findUserByLoginOrEmail(loginOrEmail: string): Promise<IUserDb| null> {
     return usersCollection.findOne(
       {$or: [{'accountData.login': loginOrEmail}, {'accountData.email': loginOrEmail}]},
-      {projection: {_id: 0}})
+      {projection: {_id: 0}}) as Promise<IUserDb| null>
   },
 }

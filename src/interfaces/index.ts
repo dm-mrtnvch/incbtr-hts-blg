@@ -1,4 +1,5 @@
 import {Request} from "express";
+import {SortDirection} from "mongodb";
 import {expiredTokensCollection} from "../db/db";
 
 export interface IBlog {
@@ -58,6 +59,11 @@ export interface IUserView {
   createdAt: string
 }
 
+export type RequestErrorsValidationType = {
+  field: string,
+  message: string
+}
+
 export interface IExpiredTokens {
   token: string
 }
@@ -68,3 +74,26 @@ export type RequestWithQuery<Q> = Request<{}, {}, {}, Q>
 export type RequestWithParamsAndBody<P, B> = Request<P, {}, B, {}>
 export type RequestWithParamsAndBodyAndUser<P, B, R extends {id: string}>  = Request<P, {}, B, {}, R>
 export type RequestWithParamsAndQuery<P, Q> = Request<P, {}, {}, Q>
+
+
+export interface IPaginationRequest  {
+  pageNumber?: number,
+  pageSize?: number
+  sortBy?: string,
+  sortDirection?: SortDirection
+}
+export interface IPaginationWithSearchRequest extends IPaginationRequest {
+  searchNameTerm?: string,
+}
+
+export interface IBlogRequest {
+  name: string
+  description: string
+  websiteUrl: string
+}
+
+export interface IPostRequest {
+  title: string,
+  shortDescription: string,
+  content: string
+}
