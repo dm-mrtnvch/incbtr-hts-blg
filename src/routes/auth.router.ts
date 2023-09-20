@@ -1,13 +1,13 @@
 import {Request, Response, Router} from "express";
 import {body, checkSchema} from "express-validator";
-import {jwtService} from "../../application/jwt/jwt.service";
-import {emailPattern, errorsValidation, passwordPattern} from "../../helpers/utils";
-import {RequestWithBody} from "../../interfaces";
-import {AccessTokenAuthMiddleware, RefreshTokenAuthMiddleware} from "../../middlewares/middlewares";
-import {usersRepository} from "../../repositories/users";
-import {usersQueryRepository} from "../../repositories/users/query";
-import {authService} from "../../services/auth.service";
-import {usersService} from "../../services/users.service";
+import {jwtService} from "../application/jwt/jwt.service";
+import {emailPattern, errorsValidation, passwordPattern} from "../helpers/utils";
+import {RequestWithBody} from "../interfaces";
+import {AccessTokenAuthMiddleware, RefreshTokenAuthMiddleware} from "../middlewares/middlewares";
+import {usersRepository} from "../repositories/users";
+import {usersQueryRepository} from "../repositories/users/query";
+import {authService} from "../services/auth.service";
+import {usersService} from "../services/users.service";
 
 export const authRouter = Router()
 

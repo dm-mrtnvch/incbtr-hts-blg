@@ -1,11 +1,11 @@
 import {Response, Request, Router} from "express";
 import {body, query} from "express-validator";
 import {SortDirection} from "mongodb";
-import {errorsValidation, sortDirectionValueOrUndefined, toNumberOrUndefined} from "../../helpers/utils";
-import {RequestWithBody, RequestWithParams, RequestWithQuery} from "../../interfaces";
-import {BasicAuthMiddleware} from "../../middlewares/middlewares";
-import {blogsService} from "../../services/blogs.service";
-import {usersService} from "../../services/users.service";
+import {errorsValidation, sortDirectionValueOrUndefined, toNumberOrUndefined} from "../helpers/utils";
+import {RequestWithBody, RequestWithParams, RequestWithQuery} from "../interfaces";
+import {BasicAuthMiddleware} from "../middlewares/middlewares";
+import {blogsService} from "../services/blogs.service";
+import {usersService} from "../services/users.service";
 
 export const usersRouter = Router()
 

@@ -1,10 +1,10 @@
 import {Response, Router} from "express";
 import {body} from "express-validator";
-import {errorsValidation} from "../../helpers/utils";
-import {RequestWithParams, RequestWithParamsAndBody} from "../../interfaces";
-import {AccessTokenAuthMiddleware} from "../../middlewares/middlewares";
-import {commentsQueryRepository} from "../../repositories/comments/query";
-import {commentsService} from "../../services/comments.service";
+import {errorsValidation} from "../helpers/utils";
+import {RequestWithParams, RequestWithParamsAndBody} from "../interfaces";
+import {AccessTokenAuthMiddleware} from "../middlewares/middlewares";
+import {commentsQueryRepository} from "../repositories/comments/query";
+import {commentsService} from "../services/comments.service";
 
 export const commentsRouter = Router()
 

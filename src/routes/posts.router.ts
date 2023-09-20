@@ -1,25 +1,25 @@
 import {Request, Response, Router} from "express";
 import {body, param, query} from "express-validator";
 import {SortDirection, UUID} from "mongodb";
-import {errorsValidation, sortDirectionValueOrUndefined, toNumberOrUndefined} from "../../helpers/utils";
+import {errorsValidation, sortDirectionValueOrUndefined, toNumberOrUndefined} from "../helpers/utils";
 import {
   RequestWithBody,
   RequestWithParams,
   RequestWithParamsAndBody,
   RequestWithParamsAndQuery,
   RequestWithQuery
-} from "../../interfaces";
+} from "../interfaces";
 import {
   BasicAuthMiddleware,
   AccessTokenAuthMiddleware,
   RequestErrorsValidationMiddleware
-} from "../../middlewares/middlewares";
-import {blogsQueryRepository} from "../../repositories/blogs/query";
-import {commentsQueryRepository} from "../../repositories/comments/query";
-import {postsQueryRepository} from "../../repositories/posts/query";
-import {usersQueryRepository} from "../../repositories/users/query";
-import {commentsService} from "../../services/comments.service";
-import {postsService} from "../../services/posts.service";
+} from "../middlewares/middlewares";
+import {blogsQueryRepository} from "../repositories/blogs/query";
+import {commentsQueryRepository} from "../repositories/comments/query";
+import {postsQueryRepository} from "../repositories/posts/query";
+import {usersQueryRepository} from "../repositories/users/query";
+import {commentsService} from "../services/comments.service";
+import {postsService} from "../services/posts.service";
 
 
 export const postsRouter = Router()

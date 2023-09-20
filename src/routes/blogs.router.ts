@@ -10,15 +10,15 @@ import {
   RequestWithParamsAndBody,
   RequestWithParamsAndQuery,
   RequestWithQuery
-} from "../../interfaces";
-import {BasicAuthMiddleware, RequestErrorsValidationMiddleware} from "../../middlewares/middlewares";
-import {blogsQueryRepository} from "../../repositories/blogs/query";
-import {blogsService} from "../../services/blogs.service";
+} from "../interfaces";
+import {BasicAuthMiddleware, RequestErrorsValidationMiddleware} from "../middlewares/middlewares";
+import {blogsQueryRepository} from "../repositories/blogs/query";
+import {blogsService} from "../services/blogs.service";
 import {
   blogCreateUpdateValidationSchema,
   paginationSanitizationSchema,
   postValidationSchema
-} from "../../validation/auth";
+} from "../validation/auth";
 
 export const blogsRouter = Router()
 
@@ -38,15 +38,14 @@ blogsRouter.get('/',
 
 blogsRouter.get('/:id',
   async (req: RequestWithParams<{ id: string }>, res: Response) => {
-  const {id} = req.params
-  const blog = await blogsQueryRepository.getBlogById(id)
+    const blog = await blogsQueryRepository.getBlogById(req.params.id)
 
-  if (blog) {
-    res.send(blog)
-  } else {
-    res.sendStatus(404)
-  }
-})
+    if (blog) {
+      res.send(blog)
+    } else {
+      res.sendStatus(404)
+    }
+  })
 
 blogsRouter.get('/:blogId/posts',
   checkSchema(paginationSanitizationSchema),
@@ -55,7 +54,10 @@ blogsRouter.get('/:blogId/posts',
     const {pageNumber, pageSize, sortBy, sortDirection} = req.query
     const isBlogExist = await blogsQueryRepository.getBlogById(blogId)
 
-    if (!isBlogExist) return res.sendStatus(404)
+    if (!isBlogExist) {
+      res.sendStatus(404)
+      return
+    }
 
     const blogPosts = await blogsService.getBlogPostsById(
       blogId,
@@ -64,7 +66,7 @@ blogsRouter.get('/:blogId/posts',
       sortBy,
       sortDirection,
     )
-    return res.send(blogPosts)
+    res.send(blogPosts)
   })
 
 blogsRouter.post('/',
@@ -87,10 +89,13 @@ blogsRouter.post('/:blogId/posts',
     const {title, shortDescription, content} = req.body
     const isBlogExist = await blogsQueryRepository.getBlogById(blogId)
 
-    if (!isBlogExist) return res.sendStatus(404)
+    if (!isBlogExist) {
+      res.sendStatus(404)
+      return
+    }
 
     const newBlogPost = await blogsService.createBlogPost(title, shortDescription, content, blogId)
-    return res.status(201).send(newBlogPost)
+    res.status(201).send(newBlogPost)
   })
 
 blogsRouter.put('/:id',

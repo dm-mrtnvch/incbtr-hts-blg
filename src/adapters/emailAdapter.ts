@@ -1,15 +1,15 @@
 import nodemailer, {SentMessageInfo} from "nodemailer";
 
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  auth: {
+    user: 'idmvshn@gmail.com',
+    pass: 'rwdlwwpxswcmyzoe'
+  }
+});
+
 export const emailAdapter = {
   async sendEmailConfirmationMessage(email: string, confirmationCode: string): Promise<SentMessageInfo> {
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      auth: {
-        user: 'idmvshn@gmail.com',
-        pass: 'rwdlwwpxswcmyzoe'
-      }
-    });
-
     const info = await transporter.sendMail({
       from: '"Incbtr ✉️" <idmvshn@gmail.com>', // sender address
       to: email, // list of receivers
@@ -20,7 +20,8 @@ export const emailAdapter = {
           <a href="https://somesite.com/confirm-email?code=${confirmationCode}">complete registration</a>
         </p>
       `
-    });
+    })
+
     return info
   },
 }
