@@ -8,10 +8,6 @@ export const commentsRepository = {
       ...commentToReturn
     } = newComment
 
-    console.log('newComment', newComment)
-    console.log('postId', postId)
-    console.log('commentToReturn', commentToReturn)
-
     await commentsCollection.insertOne({...newComment})
     /// why without {}
     return commentToReturn

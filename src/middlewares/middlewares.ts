@@ -49,26 +49,27 @@ export const RefreshTokenAuthMiddleware = async (req: Request, res: Response, ne
     return res.sendStatus(401)
   }
 
-  const userId = jwtService.getUserIdByRefreshToken(currentRefreshToken)
-  if (!userId) {
+  const payload = jwtService.getUserIdByRefreshToken(currentRefreshToken)
+  if (!payload) {
     console.log('invalid token')
     return res.sendStatus(401);
   }
 
-  const isRefreshTokenBlacklisted = await jwtService.isRefreshTokenExistInBlackList(currentRefreshToken)
-  if (isRefreshTokenBlacklisted) {
-    console.log('token block')
-    return res.sendStatus(401);
-  }
+  // const isRefreshTokenBlacklisted = await jwtService.isRefreshTokenExistInBlackList(currentRefreshToken)
+  // if (isRefreshTokenBlacklisted) {
+  //   console.log('token block')
+  //   return res.sendStatus(401);
+  // }
 
-  const user = await usersQueryRepository.getUserById(userId)
+  const user = await usersQueryRepository.getUserById(payload.userId)
   if (!user) {
     console.log('no user')
     return res.sendStatus(401)
   }
 
   console.log(user)
-  req.userId = user.id
+  req.userId = payload.userId
+  req.jwtPayload = payload
   return next()
 }
 
@@ -119,7 +120,6 @@ export const RequestsLimitMiddleware = async (req: Request, res: Response, next:
     date: new Date()
   }
 
-  console.log(newRequest)
   const count = await requestsCollection.countDocuments({URL, IP, date: {$gte: date}})
 
   if (count + 1 > 5) {

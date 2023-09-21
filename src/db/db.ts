@@ -17,7 +17,7 @@ export const authCollection = client.db().collection('auth')
 export const commentsCollection = client.db().collection('comments')
 export const expiredTokensCollection = client.db().collection<IExpiredTokens>('expiredTokens')
 export const requestsCollection = client.db().collection<IRequestsCount>('requests')
-export const deviceSessionsCollection = client.db().collection<IDeviceSessions>('requests')
+export const deviceSessionsCollection = client.db().collection<IDeviceSessions>('deviceSessions')
 
 
 export const runDb = async () => {

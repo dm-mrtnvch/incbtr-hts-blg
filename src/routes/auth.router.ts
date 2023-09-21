@@ -1,9 +1,15 @@
+import {randomUUID} from "crypto";
 import {Request, Response, Router} from "express";
 import {body, checkSchema} from "express-validator";
 import {jwtService} from "../application/jwt/jwt.service";
+import {deviceSessionsCollection} from "../db/db";
 import {emailPattern, errorsValidation, passwordPattern} from "../helpers/utils";
 import {RequestWithBody} from "../interfaces";
-import {AccessTokenAuthMiddleware, RequestsLimitMiddleware, RefreshTokenAuthMiddleware} from "../middlewares/middlewares";
+import {
+  AccessTokenAuthMiddleware,
+  RequestsLimitMiddleware,
+  RefreshTokenAuthMiddleware
+} from "../middlewares/middlewares";
 import {usersRepository} from "../repositories/users";
 import {usersQueryRepository} from "../repositories/users/query";
 import {authService} from "../services/auth.service";
@@ -31,12 +37,25 @@ authRouter.post('/login',
     const userId = await authService.checkCredentials(loginOrEmail, password)
 
     if (userId) {
-      const response = await jwtService.createJwt(userId)
-      const refreshToken = await jwtService.createRefreshToken(userId)
+
+      //TODO; remove uuid library
+      const deviceId = randomUUID()
+      const accessToken = await jwtService.createJwt(userId)
+      const refreshToken = await jwtService.createRefreshToken(userId, deviceId)
+
+      await deviceSessionsCollection.insertOne({
+        ip: req.ip,
+        title: req.headers['user-agent'] || 'asdf',
+        deviceId,
+        userId,
+        lastActiveDate: jwtService.getLastActiveDateFromToken(refreshToken)
+      })
+
+      //lastActiveDate === время выписки рефреш токена
 
       res
         .cookie('refreshToken', refreshToken, {httpOnly: true, secure: true})
-        .send(response)
+        .send(accessToken)
 
     } else {
       res.sendStatus(401)
@@ -45,10 +64,15 @@ authRouter.post('/login',
 
 authRouter.post('/logout',
   RequestsLimitMiddleware,
-
   RefreshTokenAuthMiddleware,
   async (req: Request, res: Response) => {
-    await jwtService.addRefreshTokenToBlacklist(req.cookies.refreshToken)
+    // await jwtService.addRefreshTokenToBlacklist(req.cookies.refreshToken)
+    const {userId, deviceId, iat} = req.jwtPayload
+    const device = await deviceSessionsCollection.findOne({deviceId, userId})
+    if (!device) return res.sendStatus(401)
+    if (device.lastActiveDate !== new Date(iat * 1000).toISOString()) return res.sendStatus(401)
+
+    await deviceSessionsCollection.deleteOne({deviceId, userId})
     return res.clearCookie('refreshToken').status(204).send()
   })
 
@@ -56,16 +80,17 @@ authRouter.get('/me',
   RequestsLimitMiddleware,
 
   /// is refresh requires here?
+  /// is refresh requires here?
   AccessTokenAuthMiddleware,
   async (req: Request, res: Response) => {
     const user = await usersQueryRepository.getUserById(req.userId)
 
 
-      res.send({
-        email: user.accountData.email,
-        login: user.accountData.login,
-        userId: user.id
-      })
+    res.send({
+      email: user.accountData.email,
+      login: user.accountData.login,
+      userId: user.id
+    })
 
   })
 
@@ -174,12 +199,19 @@ authRouter.post('/refresh-token',
 
   RefreshTokenAuthMiddleware,
   async (req: Request, res: Response) => {
-    console.log(req.userId, 'rt router')
-    const newAccessToken = await jwtService.createJwt(req.userId)
-    const newRefreshToken = await jwtService.createRefreshToken(req.userId)
+    const {userId, deviceId, iat} = req.jwtPayload
+    const device = await deviceSessionsCollection.findOne({deviceId, userId})
+    if (!device) return res.sendStatus(401)
+    if (device.lastActiveDate !== new Date(iat * 1000).toISOString()) return res.sendStatus(401)
+
+    const newAccessToken = await jwtService.createJwt(userId)
+    const newRefreshToken = await jwtService.createRefreshToken(userId, deviceId)
 
     if (newAccessToken && newRefreshToken) {
-      await jwtService.addRefreshTokenToBlacklist(req.cookies.refreshToken)
+      // await jwtService.addRefreshTokenToBlacklist(req.cookies.refreshToken)
+
+      const lastActiveDate = jwtService.getLastActiveDateFromToken(newRefreshToken)
+      await deviceSessionsCollection.updateOne({userId, deviceId}, {$set: {lastActiveDate}})
 
       res.cookie('refreshToken', newRefreshToken, {httpOnly: true, secure: true})
       res.send(newAccessToken)

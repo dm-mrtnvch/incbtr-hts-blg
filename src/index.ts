@@ -2,7 +2,7 @@ import cookieParser from "cookie-parser";
 import express, {Request, Response} from 'express'
 import {
   blogsCollection,
-  commentsCollection,
+  commentsCollection, deviceSessionsCollection,
   postsCollection,
   requestsCollection,
   runDb,
@@ -12,6 +12,7 @@ import {authRouter} from "./routes/auth.router";
 import {blogsRouter} from "./routes/blogs.router";
 import {commentsRouter} from "./routes/comments.router";
 import {postsRouter} from "./routes/posts.router";
+import {securityRouter} from "./routes/security.router";
 import {usersRouter} from "./routes/users.router";
 
 
@@ -27,11 +28,14 @@ const port = process.env.PORT || 3020
 console.log('4444')
 
 app.delete('/testing/all-data', async (req: Request, res: Response) => {
-  await blogsCollection.deleteMany({})
-  await postsCollection.deleteMany({})
-  await usersCollection.deleteMany({})
-  await commentsCollection.deleteMany({})
-  await requestsCollection.deleteMany({})
+   await Promise.all(
+     [blogsCollection.deleteMany({}),
+       postsCollection.deleteMany({}),
+       usersCollection.deleteMany({}),
+       commentsCollection.deleteMany({}),
+       requestsCollection.deleteMany({}),
+       deviceSessionsCollection.deleteMany({})]
+   )
   res.sendStatus(204)
 })
 
@@ -40,6 +44,7 @@ app.use('/posts', postsRouter)
 app.use('/users', usersRouter)
 app.use('/auth', authRouter)
 app.use('/comments', commentsRouter)
+app.use('/security', securityRouter)
 
 
 

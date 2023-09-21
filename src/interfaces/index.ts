@@ -105,9 +105,9 @@ export interface IRequestsCount {
 }
 
 export interface IDeviceSessions {
-  issuedAt: string,
-  deviceId: string,
   ip: string,
-  deviceName: string,
+  title: string,
+  deviceId: string,
   userId: string
+  lastActiveDate: string
 }
