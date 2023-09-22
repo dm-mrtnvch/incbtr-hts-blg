@@ -11,7 +11,7 @@ export const blogsRepository = {
   },
   // !! use query repository for get
   async createBlog(newBlog: IBlog): Promise<IBlog> {
-    await blogsCollection.insertOne({...newBlog})
+    await blogsCollection.insertMany({...newBlog})
     return newBlog
   },
   async createBlogPost(newBlogPost: IPost): Promise<IPost> {
