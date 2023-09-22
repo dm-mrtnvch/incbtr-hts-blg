@@ -1,7 +1,7 @@
 import {FindOptions, SortDirection} from "mongodb";
 import {v4 as uuidv4} from "uuid";
 import {IBlog, IPost} from "../interfaces";
-import {blogsRepository} from "../repositories/blogs";
+import {blogsRepository, ProjectionType,} from "../repositories/blogs";
 import {blogsQueryRepository} from "../repositories/blogs/query";
 
 export const blogsService = {
@@ -10,20 +10,27 @@ export const blogsService = {
     pageNumber: number = 1,
     pageSize: number = 10,
     sortBy: string = 'createdAt',
-    sortDirection: SortDirection = 'desc'
+    sortDirection: SortDirection = -1
 ) {
     const skipCount = (pageNumber - 1) * pageSize
-    const blogsFindOptions: FindOptions = {
-      projection: {_id: 0},
+
+    const filterOptions = {
+      ...(searchNameTerm && {name: new RegExp(searchNameTerm, 'i')}),
+    }
+
+    const projection: ProjectionType = {
+      _id: 0,
+      __v: 0
+    }
+
+    //// FindOptions...
+    const findOptions: any = {
       sort: {[sortBy]: sortDirection},
       skip: skipCount,
       limit: pageSize,
     }
-    const filterOptions = {
-      ...(searchNameTerm && {name: new RegExp(searchNameTerm, 'i')})
-    }
 
-    const blogs: IBlog[] = await blogsRepository.getAllBlogs(filterOptions, blogsFindOptions)
+    const blogs: IBlog[] = await blogsRepository.getAllBlogs(filterOptions, projection, findOptions)
     const totalCount = await blogsQueryRepository.getAllBlogsCount(filterOptions)
     const totalPagesCount = Math.ceil(totalCount / pageSize)
 
@@ -45,16 +52,14 @@ export const blogsService = {
   ) {
 
     const skipCount = (pageNumber - 1) * pageSize
-    const postsFindOptions: FindOptions = {
+    const findOptions: FindOptions = {
       projection: {_id: 0},
-      // @ts-ignore
       sort: {[sortBy]: sortDirection},
       skip: skipCount,
-      limit: Number(pageSize)
+      limit: pageSize
     }
 
-    // two requests to getBlogPostsById
-    const posts = await blogsRepository.getBlogPostsById(blogId, postsFindOptions)
+    const posts = await blogsRepository.getBlogPostsById(blogId, findOptions)
     const postForPagesCounting = await blogsRepository.getBlogPostsById(blogId, {})
     const totalCount = postForPagesCounting.length
     const totalPagesCount = Math.ceil(postForPagesCounting.length / Number(pageSize))

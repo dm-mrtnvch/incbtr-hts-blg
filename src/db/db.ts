@@ -12,16 +12,26 @@ if(!url){
 }
 
 
-const blogSchema = new mongoose.Schema({
+const blogSchema = new mongoose.Schema<IBlog>({
   id: String,
   name: String,
   description: String,
   websiteUrl: String,
   isMembership: Boolean,
   createdAt:String,
-});
+})
 
-export const blogsCollection = mongoose.model('blogs', blogSchema);
+const userSchema = new mongoose.Schema({
+  id:String,
+  login:String,
+  password:String,
+  email:String,
+  createdAt: String,
+})
+
+
+export const BlogModel = mongoose.model('blogs', blogSchema);
+export const usersCollection = mongoose.model('users', userSchema)
 
 // const client = new MongoClient(url)
 

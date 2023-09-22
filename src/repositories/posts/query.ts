@@ -1,5 +1,5 @@
 import {DeleteResult, FindOptions, UpdateResult} from "mongodb";
-import {blogsCollection, postsCollection} from "../../db/db";
+import {BlogModel, postsCollection} from "../../db/db";
 import {blogsDb, postsDb} from "../../db/mock_data";
 import {IPost} from "../../interfaces";
 import {blogsRepository} from "../blogs";

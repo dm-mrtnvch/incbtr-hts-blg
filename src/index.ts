@@ -1,7 +1,7 @@
 import cookieParser from "cookie-parser";
 import express, {Request, Response} from 'express'
 import {
-  blogsCollection,
+  BlogModel,
   commentsCollection, deviceSessionsCollection,
   postsCollection,
   requestsCollection,
@@ -29,7 +29,7 @@ console.log('4444')
 
 app.delete('/testing/all-data', async (req: Request, res: Response) => {
    await Promise.all(
-     [blogsCollection.deleteMany({}),
+     [BlogModel.deleteMany({}),
        postsCollection.deleteMany({}),
        usersCollection.deleteMany({}),
        commentsCollection.deleteMany({}),
