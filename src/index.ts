@@ -1,11 +1,19 @@
 import cookieParser from "cookie-parser";
 import express, {Request, Response} from 'express'
-import {blogsCollection, commentsCollection, postsCollection, runDb, usersCollection} from "./db/db";
-import {authRouter} from "./routes/auth";
-import {blogsRouter} from "./routes/blogs";
-import {commentsRouter} from "./routes/comments";
-import {postsRouter} from "./routes/posts";
-import {usersRouter} from "./routes/users";
+import {
+  blogsCollection,
+  commentsCollection,
+  postsCollection,
+  requestsCollection,
+  runDb,
+  usersCollection
+} from "./db/db";
+import {authRouter} from "./routes/auth.router";
+import {blogsRouter} from "./routes/blogs.router";
+import {commentsRouter} from "./routes/comments.router";
+import {postsRouter} from "./routes/posts.router";
+import {usersRouter} from "./routes/users.router";
+
 
 // userViewType - front
 // userDbType - back
@@ -13,6 +21,7 @@ import {usersRouter} from "./routes/users";
 export const app = express()
 app.use(express.json())
 app.use(cookieParser())
+app.set('trust proxy', true)
 const port = process.env.PORT || 3020
 
 console.log('4444')
@@ -22,6 +31,7 @@ app.delete('/testing/all-data', async (req: Request, res: Response) => {
   await postsCollection.deleteMany({})
   await usersCollection.deleteMany({})
   await commentsCollection.deleteMany({})
+  await requestsCollection.deleteMany({})
   res.sendStatus(204)
 })
 

@@ -6,7 +6,7 @@
   "author": "d-mrtnvch <dmm@anadeainc.com>",
   "license": "MIT",
   "scripts": {
-    "dev": "nodemon --inspect dist/index.js",
+    "dev": "nodemon dist/index.js",
     "watch": "tsc -w",
     "jest": "jest",
     "serveo": "ssh -R 80:localhost:3020 serveo.net"

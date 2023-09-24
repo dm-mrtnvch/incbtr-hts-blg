@@ -1,7 +1,7 @@
 import {randomUUID} from "crypto";
 import {MongoClient, UUID} from "mongodb"
 import * as dotenv from 'dotenv'
-import {IBlog, IExpiredTokens, IPost, IUser} from "../interfaces";
+import {IBlog, IDeviceSessions, IExpiredTokens, IPost, IRequestsCount, IUser} from "../interfaces";
 dotenv.config()
 
 const url = process.env.MONGO_URL || "mongodb://0.0.0.0:27017"
@@ -16,6 +16,8 @@ export const usersCollection = client.db().collection<IUser>('users')
 export const authCollection = client.db().collection('auth')
 export const commentsCollection = client.db().collection('comments')
 export const expiredTokensCollection = client.db().collection<IExpiredTokens>('expiredTokens')
+export const requestsCollection = client.db().collection<IRequestsCount>('requests')
+export const deviceSessionsCollection = client.db().collection<IDeviceSessions>('requests')
 
 
 export const runDb = async () => {

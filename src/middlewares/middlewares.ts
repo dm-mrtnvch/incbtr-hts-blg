@@ -1,6 +1,8 @@
 import {NextFunction, Request, Response} from "express";
 import {ValidationError, validationResult} from "express-validator";
+import {log} from "util";
 import {jwtService} from "../application/jwt/jwt.service";
+import {requestsCollection} from "../db/db";
 import {RequestErrorsValidationType} from "../interfaces";
 import {usersQueryRepository} from "../repositories/users/query";
 
@@ -104,3 +106,30 @@ export const PaginationMiddleware = (req: Request, res: Response, next: NextFunc
     return next()
   }
 }
+
+
+export const RequestsLimitMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+  const URL = req.baseUrl + req.url
+  const IP = req.ip
+  const date = new Date(Date.now() - 10 * 1000)
+
+  const newRequest = {
+    URL,
+    IP,
+    date: new Date()
+  }
+
+  console.log(newRequest)
+  const count = await requestsCollection.countDocuments({URL, IP, date: {$gte: date}})
+
+  if (count + 1 > 5) {
+    res.sendStatus(429)
+    return
+  } else {
+    await requestsCollection.insertOne(newRequest)
+
+    return next()
+  }
+}
+
+

@@ -50,7 +50,6 @@ export type IUserDb = {
 }
 
 
-
 export interface IUserView {
   id: string
   login: string
@@ -68,20 +67,21 @@ export interface IExpiredTokens {
   token: string
 }
 
-export type RequestWithParams<P>  = Request<P, {}, {}, {}>
+export type RequestWithParams<P> = Request<P, {}, {}, {}>
 export type RequestWithBody<B> = Request<{}, {}, B, {}>
 export type RequestWithQuery<Q> = Request<{}, {}, {}, Q>
 export type RequestWithParamsAndBody<P, B> = Request<P, {}, B, {}>
-export type RequestWithParamsAndBodyAndUser<P, B, R extends {id: string}>  = Request<P, {}, B, {}, R>
+export type RequestWithParamsAndBodyAndUser<P, B, R extends { id: string }> = Request<P, {}, B, {}, R>
 export type RequestWithParamsAndQuery<P, Q> = Request<P, {}, {}, Q>
 
 
-export interface IPaginationRequest  {
+export interface IPaginationRequest {
   pageNumber?: number,
   pageSize?: number
   sortBy?: string,
   sortDirection?: SortDirection
 }
+
 export interface IPaginationWithSearchRequest extends IPaginationRequest {
   searchNameTerm?: string,
 }
@@ -96,4 +96,18 @@ export interface IPostRequest {
   title: string,
   shortDescription: string,
   content: string
+}
+
+export interface IRequestsCount {
+  IP: string,
+  URL: string,
+  date: Date
+}
+
+export interface IDeviceSessions {
+  issuedAt: string,
+  deviceId: string,
+  ip: string,
+  deviceName: string,
+  userId: string
 }

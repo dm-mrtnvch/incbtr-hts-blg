@@ -3,7 +3,7 @@ import {body, checkSchema} from "express-validator";
 import {jwtService} from "../application/jwt/jwt.service";
 import {emailPattern, errorsValidation, passwordPattern} from "../helpers/utils";
 import {RequestWithBody} from "../interfaces";
-import {AccessTokenAuthMiddleware, RefreshTokenAuthMiddleware} from "../middlewares/middlewares";
+import {AccessTokenAuthMiddleware, RequestsLimitMiddleware, RefreshTokenAuthMiddleware} from "../middlewares/middlewares";
 import {usersRepository} from "../repositories/users";
 import {usersQueryRepository} from "../repositories/users/query";
 import {authService} from "../services/auth.service";
@@ -12,6 +12,7 @@ import {usersService} from "../services/users.service";
 export const authRouter = Router()
 
 authRouter.post('/login',
+  RequestsLimitMiddleware,
   body('loginOrEmail').notEmpty().trim(),
   body('password').notEmpty().trim(),
   // checkSchema({
@@ -43,6 +44,8 @@ authRouter.post('/login',
   })
 
 authRouter.post('/logout',
+  RequestsLimitMiddleware,
+
   RefreshTokenAuthMiddleware,
   async (req: Request, res: Response) => {
     await jwtService.addRefreshTokenToBlacklist(req.cookies.refreshToken)
@@ -50,6 +53,8 @@ authRouter.post('/logout',
   })
 
 authRouter.get('/me',
+  RequestsLimitMiddleware,
+
   /// is refresh requires here?
   AccessTokenAuthMiddleware,
   async (req: Request, res: Response) => {
@@ -65,6 +70,8 @@ authRouter.get('/me',
   })
 
 authRouter.post('/registration',
+  RequestsLimitMiddleware,
+
   body('login').trim().notEmpty().isLength({min: 3, max: 10})
     .custom(async (login) => {
       const userWithLogin = await usersQueryRepository.findUserByLogin(login);
@@ -101,6 +108,8 @@ authRouter.post('/registration',
   })
 
 authRouter.post('/registration-confirmation',
+  RequestsLimitMiddleware,
+
   body('code').notEmpty().trim().custom(async (code) => {
     const user = await usersRepository.findUserByConfirmationCode(code)
 
@@ -128,6 +137,7 @@ authRouter.post('/registration-confirmation',
   })
 
 authRouter.post('/registration-email-resending',
+  RequestsLimitMiddleware,
   body('email').notEmpty().trim().isEmail().matches(emailPattern)
     .custom(async (email) => {
       const user = await usersQueryRepository.findUserByEmail(email)
@@ -160,6 +170,8 @@ authRouter.post('/registration-email-resending',
   })
 
 authRouter.post('/refresh-token',
+  RequestsLimitMiddleware,
+
   RefreshTokenAuthMiddleware,
   async (req: Request, res: Response) => {
     console.log(req.userId, 'rt router')
