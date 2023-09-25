@@ -2,7 +2,7 @@ import add from "date-fns/add";
 import {ca} from "date-fns/locale";
 import {Filter, FindOptions, SortDirection, UUID} from "mongodb";
 import {emailAdapter} from "../adapters/emailAdapter";
-import {usersCollection} from "../db/db";
+import {UserModel} from "../db/db";
 import {EmailConfirmationType, IUser, IUserDb, IUserView} from "../interfaces";
 import {usersRepository} from "../repositories/users";
 import {usersQueryRepository} from "../repositories/users/query";

@@ -3,6 +3,7 @@ import {v4 as uuidv4} from "uuid";
 import {IBlog, IPost} from "../interfaces";
 import {blogsRepository, ProjectionType,} from "../repositories/blogs";
 import {blogsQueryRepository} from "../repositories/blogs/query";
+import {postsQueryRepository} from "../repositories/posts/query";
 
 export const blogsService = {
   async getAllBlogs(
@@ -50,19 +51,21 @@ export const blogsService = {
     sortBy: string = 'createdAt',
     sortDirection: SortDirection = 'desc',
   ) {
-
     const skipCount = (pageNumber - 1) * pageSize
     const findOptions: FindOptions = {
-      projection: {_id: 0},
       sort: {[sortBy]: sortDirection},
       skip: skipCount,
       limit: pageSize
     }
 
-    const posts = await blogsRepository.getBlogPostsById(blogId, findOptions)
-    const postForPagesCounting = await blogsRepository.getBlogPostsById(blogId, {})
-    const totalCount = postForPagesCounting.length
-    const totalPagesCount = Math.ceil(postForPagesCounting.length / Number(pageSize))
+    const projection: ProjectionType = {
+      _id: 0,
+      __v: 0
+    }
+
+    const posts = await blogsRepository.getBlogPostsById(blogId, projection, findOptions)
+    const totalCount = await postsQueryRepository.getAllPostsCount({blogId})
+    const totalPagesCount = Math.ceil(totalCount / pageSize)
 
     return {
       pagesCount: totalPagesCount,
@@ -72,7 +75,6 @@ export const blogsService = {
       items: posts
     }
   },
-
 
   async createBlog(name: string, description: string, websiteUrl: string) {
     const newBlog: any = {
@@ -98,14 +100,15 @@ export const blogsService = {
       createdAt: new Date().toISOString()
     }
 
-    await blogsRepository.createBlogPost(newBlogPost)
+    return blogsRepository.createBlogPost(newBlogPost)
 
-    return newBlogPost
   },
-  async updateBlogById(id: string, name: string, description: string, websiteUrl: string): Promise<boolean> {
+  /// extra void because of try catch
+  async updateBlogById(id: string, name: string, description: string, websiteUrl: string): Promise<boolean | void> {
     return blogsRepository.updateBlogById(id, name, description, websiteUrl)
   },
-  async deleteBlogById(id: string): Promise<boolean> {
+  /// extra void because of try catch
+  async deleteBlogById(id: string): Promise<boolean | void> {
     return blogsRepository.deleteBlogById(id)
   }
 }

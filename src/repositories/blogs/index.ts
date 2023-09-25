@@ -1,5 +1,6 @@
+import {ca} from "date-fns/locale";
 import {FilterQuery} from "mongoose";
-import {BlogModel, postsCollection} from "../../db/db";
+import {BlogModel, PostModel} from "../../db/db";
 import {IBlog, IPost} from "../../interfaces";
 
 export type ProjectionType = {}
@@ -18,8 +19,17 @@ export const blogsRepository = {
       .lean()
   },
 
-  async getBlogPostsById(blogId: string, findOptions: any): Promise<any> { /// typization
-    return postsCollection.find({blogId}, findOptions).toArray()
+  /// send blogId and -> .find({blogId}) or send and filteroptions = {blogId}
+  async getBlogPostsById(blogId: string, projection: any, findOptions: any): Promise<any> { /// typization
+    const {sort, skip, limit} = findOptions
+
+    return PostModel
+      .find({blogId})
+      .select(projection)
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
+      .lean()
   },
 
   async createBlog(newBlog: IBlog): Promise<IBlog | void> { /// is void type ok?
@@ -33,17 +43,30 @@ export const blogsRepository = {
         description,
         websiteUrl,
         isMembership,
-        createdAt
+        createdAt,
       }
     } catch (e) {
       console.log(`createBlog error: ${e}`)
     }
   },
 
+  async createBlogPost(newBlogPost: IPost): Promise<IPost | void> {
+    try {
+      const newPost = await PostModel.create({...newBlogPost})
+      const {id, title, shortDescription, content, blogId, blogName, createdAt}: IPost = newPost
 
-  async createBlogPost(newBlogPost: IPost): Promise<IPost> {
-    await postsCollection.create({...newBlogPost})
-    return newBlogPost
+      return {
+        id,
+        title,
+        shortDescription,
+        content,
+        blogId,
+        blogName,
+        createdAt,
+      }
+    } catch (e) {
+      console.log(`createBlogPost error: ${e}`)
+    }
   },
 
 

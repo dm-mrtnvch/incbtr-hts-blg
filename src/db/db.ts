@@ -29,9 +29,21 @@ const userSchema = new mongoose.Schema({
   createdAt: String,
 })
 
+const postSchema = new mongoose.Schema<IPost>({
+  id: String,
+  title: String,
+  shortDescription: String,
+  content: String,
+  blogId: String,
+  blogName: String,
+  createdAt: String,
+})
+
 
 export const BlogModel = mongoose.model('blogs', blogSchema);
-export const usersCollection = mongoose.model('users', userSchema)
+export const UserModel = mongoose.model('users', userSchema)
+export const PostModel = mongoose.model('posts', postSchema)
+
 
 // const client = new MongoClient(url)
 

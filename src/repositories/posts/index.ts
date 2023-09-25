@@ -1,20 +1,45 @@
 import {DeleteResult, FindOptions, UpdateResult} from "mongodb";
-import {BlogModel, postsCollection} from "../../db/db";
+import {BlogModel, PostModel} from "../../db/db";
 import {blogsDb, postsDb} from "../../db/mock_data";
 import {IPost} from "../../interfaces";
 import {blogsRepository} from "../blogs";
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
 export const postsRepository = {
-  async getAllPosts(postsFindOptions: FindOptions): Promise<IPost[]> {
-    return postsCollection.find({}, postsFindOptions).toArray()
-  },
-  async createPost(newPost: IPost) {
-    return postsCollection.insertOne({...newPost})
+  /// typization
+  async getAllPosts(filterOptions: any, projection: any, findOptions: any): Promise<IPost[]> {
+    const {sort, skip, limit} = findOptions
 
+    return PostModel
+      .find(filterOptions)
+      .select(projection)
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
+      .lean()
   },
+
+  async createPost(newPost: IPost): Promise<IPost | void> {
+    try {
+      const createdPost = await PostModel.create(newPost)
+      const {id, title, shortDescription, content, blogId, blogName, createdAt} = createdPost
+
+      return {
+        id,
+        title,
+        shortDescription,
+        content,
+        blogId,
+        blogName,
+        createdAt,
+      }
+    } catch (e) {
+      console.log(`createPost error: ${e}`);
+    }
+  },
+
   async updatePostById(id: string, title: string, shortDescription: string, content: string, blogId: string): Promise<UpdateResult> {
-    return postsCollection.updateOne({blogId}, {
+    return PostModel.updateOne({blogId}, {
       $set: {
         blogId,
         title,
@@ -25,9 +50,6 @@ export const postsRepository = {
   },
 
   async deletePostById(id: string): Promise<DeleteResult> {
-    /// where to check deletion? service / repository?
-    /// check in service
-    return postsCollection.deleteOne({id})
-
+    return PostModel.deleteOne({id})
   }
 }

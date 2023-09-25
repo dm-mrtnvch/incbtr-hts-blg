@@ -1,5 +1,5 @@
 import {FindOptions} from "mongodb";
-import {usersCollection} from "../../db/db";
+import {UserModel} from "../../db/db";
 import {IUser} from "../../interfaces";
 import {v4 as uuidv4} from "uuid";
 
@@ -21,21 +21,21 @@ export const usersRepository = {
       ? {$or: conditions}
       : {}
 
-    return usersCollection.find(filter, findOptions).toArray()
+    return UserModel.find(filter, findOptions).toArray()
   },
   /// may be add to usersQueryRepository
   findUserByLoginOrEmail(loginOrEmail: string) {
-    return usersCollection.findOne({$or: [{login: loginOrEmail}, {email: loginOrEmail}]})
+    return UserModel.findOne({$or: [{login: loginOrEmail}, {email: loginOrEmail}]})
   },
   findUserByConfirmationCode(confirmationCode: string): any {
-    return usersCollection.findOne({'emailConfirmation.confirmationCode': confirmationCode}, {projection: {_id: 0}})
+    return UserModel.findOne({'emailConfirmation.confirmationCode': confirmationCode}, {projection: {_id: 0}})
   },
   async createUser(newUser: any): Promise<any>   {
-    return usersCollection.insertOne({...newUser})
+    return UserModel.insertOne({...newUser})
 
   },
   async updateConfirmation(id: string): Promise<boolean> {
-    const result = await usersCollection.updateOne({id}, {
+    const result = await UserModel.updateOne({id}, {
       $set: {'emailConfirmation.isConfirmed': true}
     })
 
@@ -44,7 +44,7 @@ export const usersRepository = {
   async updateConfirmationCode(id: string) {
     const newConfirmationCode = uuidv4()
 
-    const result = await usersCollection.updateOne({id}, {
+    const result = await UserModel.updateOne({id}, {
       $set: {'emailConfirmation.confirmationCode': newConfirmationCode}
     })
 
@@ -52,7 +52,7 @@ export const usersRepository = {
   },
 
   async deleteUserById(id: string) {
-    const response = await usersCollection.deleteOne({id})
+    const response = await UserModel.deleteOne({id})
     return !!response.deletedCount
   }
 }

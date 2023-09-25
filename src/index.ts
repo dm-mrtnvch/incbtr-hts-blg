@@ -3,10 +3,10 @@ import express, {Request, Response} from 'express'
 import {
   BlogModel,
   commentsCollection, deviceSessionsCollection,
-  postsCollection,
+  PostModel,
   requestsCollection,
   runDb,
-  usersCollection
+  UserModel
 } from "./db/db";
 import {authRouter} from "./routes/auth.router";
 import {blogsRouter} from "./routes/blogs.router";
@@ -30,8 +30,8 @@ console.log('4444')
 app.delete('/testing/all-data', async (req: Request, res: Response) => {
    await Promise.all(
      [BlogModel.deleteMany({}),
-       postsCollection.deleteMany({}),
-       usersCollection.deleteMany({}),
+       PostModel.deleteMany({}),
+       UserModel.deleteMany({}),
        commentsCollection.deleteMany({}),
        requestsCollection.deleteMany({}),
        deviceSessionsCollection.deleteMany({})]

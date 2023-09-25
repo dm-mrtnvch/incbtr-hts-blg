@@ -9,6 +9,4 @@ export const blogsQueryRepository = {
   async getBlogById(id: string): Promise<IBlog | null> {
     return BlogModel.findOne({id}, {projection: {_id: 0}})
   }
-  // getBlogPostsById has logic. can't put it here
-
 }
