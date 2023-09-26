@@ -26,6 +26,7 @@ export const postsService = {
       __v: 0
     }
 
+    /// null or {} ?
     const posts = await postsRepository.getAllPosts({}, projection, postsFindOptions)
     const totalCount = await postsQueryRepository.getAllPostsCount({})
     const totalPagesCount = Math.ceil(totalCount / pageSize)

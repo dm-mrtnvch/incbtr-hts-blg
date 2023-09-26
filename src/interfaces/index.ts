@@ -111,3 +111,21 @@ export interface IDeviceSessions {
   userId: string
   lastActiveDate: string
 }
+
+export interface CommentViewInterface {
+  id: string,
+  content: string,
+  commentatorInfo: {
+    userLogin: string
+    userId: string,
+  }
+  createdAt: string
+}
+
+export interface PaginationInterface <I> {
+  pagesCount: number
+  page: number
+  pageSize: number
+  totalCount: number
+  items: I
+}

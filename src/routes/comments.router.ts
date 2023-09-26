@@ -8,17 +8,6 @@ import {commentsService} from "../services/comments.service";
 
 export const commentsRouter = Router()
 
-///
-// export interface CommentViewType {
-//   content: string,
-//   id: string,
-//   createdAt: string
-//   commentatorInfo: {
-//     userLogin: string
-//     userId: string,
-//   }
-// }
-
 
 commentsRouter.get('/:id',
   async (req: RequestWithParams<{ id: string }>, res: Response) => {
@@ -54,8 +43,8 @@ commentsRouter.put('/:id',
       res.sendStatus(404)
       return
     }
-
-    if(comment.commentatorInfo.userId !== req.userId) {
+    /// TS18048: 'comment.commentatorInfo' is possibly 'undefined' if without ?
+    if(comment.commentatorInfo?.userId !== req.userId) {
       res.sendStatus(403)
       return
     }
@@ -77,10 +66,7 @@ commentsRouter.put('/:id',
 commentsRouter.delete('/:commentId',
   AccessTokenAuthMiddleware,
   async (req: RequestWithParams<{ commentId: string }>, res: Response) => {
-
     const {commentId} = req.params
-    const {userId} = req
-
 
     /// isOwner
     const comment = await commentsQueryRepository.getCommentById(commentId)

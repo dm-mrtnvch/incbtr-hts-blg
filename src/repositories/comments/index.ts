@@ -1,26 +1,33 @@
+import {UpdateResult} from "mongodb";
 import {v4 as uuidv4} from "uuid";
-import {commentsCollection} from "../../db/db";
+import {CommentModel} from "../../db/db";
 
 export const commentsRepository = {
   async createComment(newComment: any) {
-    const {
-      postId,
-      ...commentToReturn
-    } = newComment
+    const createdComment = await CommentModel.create(newComment)
 
-    await commentsCollection.insertOne({...newComment})
-    /// why without {}
-    return commentToReturn
+    const { id, content, createdAt, commentatorInfo } = createdComment;
+    return {
+      id,
+      content,
+      commentatorInfo: {
+        /// i have these validations in filter
+        userId: commentatorInfo?.userId,
+        userLogin: commentatorInfo?.userLogin
+      },
+      createdAt
+    }
   },
-  /// move to commentsQueryRep?
-  async getCommentsByPostId(filterOptions: any, findOptions: any){
-    return commentsCollection.find(filterOptions, findOptions).toArray();
-  },
-  async updateCommentById(id: string, content: string) {
-    return commentsCollection.updateOne({id}, {
-      $set : {
+
+  async updateCommentById(id: string, content: string): Promise<UpdateResult> {
+    return CommentModel.updateOne({id}, {
+      $set: {
         content
       }
     })
+  },
+
+  async deleteCommentById(id: string) {
+    return CommentModel.deleteOne({id})
   }
 }

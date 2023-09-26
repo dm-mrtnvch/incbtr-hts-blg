@@ -1,9 +1,9 @@
-import {FindOptions, SortDirection} from "mongodb";
+import {FindOptions, SortDirection, UpdateResult} from "mongodb";
 import {v4 as uuidv4} from "uuid";
-import {commentsCollection} from "../db/db";
+import {CommentModel} from "../db/db";
+import {CommentViewInterface, PaginationInterface} from "../interfaces";
 import {commentsRepository} from "../repositories/comments";
 import {commentsQueryRepository} from "../repositories/comments/query";
-import {usersQueryRepository} from "../repositories/users/query";
 
 
 export const commentsService = {
@@ -21,29 +21,31 @@ export const commentsService = {
 
     return await commentsRepository.createComment(newComment)
   },
+
   async getCommentsByPostId(
     postId: string,
     pageNumber: number = 1,
     pageSize: number = 10,
     sortBy: string = 'createdAt',
     sortDirection: SortDirection = 'desc',
-  ) {
+  ): Promise<PaginationInterface<CommentViewInterface>> {
 
     const skipCount = (pageNumber - 1) * pageSize
-    const filterOptions = {
-      postId
+
+    const projection = {
+      _id: 0,
+      postId: 0
     }
 
     const findOptions: FindOptions = {
-      projection: {_id: 0, postId: 0},
       sort: {[sortBy]: sortDirection},
       skip: skipCount,
       limit: pageSize
     }
 
-    const comments = await commentsRepository.getCommentsByPostId(filterOptions,findOptions)
-    const totalCount = await commentsQueryRepository.getCommentsCount(filterOptions)
-    const pagesCount = Math.ceil( totalCount / pageSize)
+    const comments = await commentsQueryRepository.getCommentsByPostId(postId, projection, findOptions)
+    const totalCount = await commentsQueryRepository.getCommentsCount(postId)
+    const pagesCount = Math.ceil(totalCount / pageSize)
 
     return {
       pagesCount,
@@ -53,13 +55,14 @@ export const commentsService = {
       items: comments
     }
   },
-  async updatedCommentById(id: string, content: string){
-    const response =  await commentsRepository.updateCommentById(id, content)
-    return !!response.modifiedCount
 
+  async updatedCommentById(id: string, content: string): Promise<boolean> {
+    const response = await commentsRepository.updateCommentById(id, content)
+    return !!response?.modifiedCount
   },
-  async deleteCommentById(id: string){
-    const response =  await commentsCollection.deleteOne({id})
+
+  async deleteCommentById(id: string) {
+    const response = await commentsRepository.deleteCommentById(id)
     return !!response.deletedCount
   }
 }

@@ -39,12 +39,22 @@ const postSchema = new mongoose.Schema<IPost>({
   createdAt: String,
 })
 
-
+const commentSchema = new mongoose.Schema({
+  id: String,
+  content: String,
+  commentatorInfo: {
+    userId: String,
+    userLogin: String,
+  },
+  createdAt: String,
+})
 export const BlogModel = mongoose.model('blogs', blogSchema);
 export const UserModel = mongoose.model('users', userSchema)
 export const PostModel = mongoose.model('posts', postSchema)
+export const CommentModel = mongoose.model('comments', commentSchema)
 
 
+// export const commentsCollection = client.db().collection('comments')
 // const client = new MongoClient(url)
 
 // export const blogsCollection = client.db().collection<IBlog>('blogs')
