@@ -1,5 +1,6 @@
 import {v4 as uuidv4} from "uuid";
 import {UserModel} from "../../db/db";
+import {usersQueryRepository} from "./query";
 
 export const usersRepository = {
   /// tipization
@@ -14,6 +15,7 @@ export const usersRepository = {
       createdAt
     }
   },
+
   async updateConfirmation(id: string): Promise<boolean> {
     const result = await UserModel.updateOne({id}, {
       $set: {'emailConfirmation.isConfirmed': true}
@@ -26,6 +28,15 @@ export const usersRepository = {
     /// await for tests?
     return UserModel.updateOne({id}, {
       $set: {'emailConfirmation.confirmationCode': newConfirmationCode}
+    })
+  },
+  async updateUserRecoveryPasswordCode(id: string, recoveryCode: string, expirationDate: any){
+
+    return UserModel.updateOne({id}, {
+      $set: {
+        'passwordRecovery.recoveryCode': recoveryCode,
+        'passwordRecovery.expirationDate': expirationDate,
+      },
     })
   },
   async deleteUserById(id: string) {

@@ -24,4 +24,21 @@ export const emailAdapter = {
 
     return info
   },
+
+
+  async recoverUserPassword(email: string, confirmationCode: string): Promise<SentMessageInfo> {
+    const info = await transporter.sendMail({
+      from: '"Incbtr ✉️" <idmvshn@gmail.com>', // sender address
+      to: email, // list of receivers
+      subject: "Incbtr app password recovery ", // Subject line
+      html: `
+         <h1>Password recovery</h1>
+          <p>To finish password recovery please follow the link below:
+            <a href="https://somesite.com/password-recovery?recoveryCode=${confirmationCode}">recovery password</a>
+          </p>
+        `
+    })
+
+    return info
+  },
 }

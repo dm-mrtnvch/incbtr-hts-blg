@@ -1,8 +1,10 @@
 import bcrypt from "bcrypt";
+import {tr} from "date-fns/locale";
 import {emailAdapter} from "../adapters/emailAdapter";
 import {IUserDb} from "../interfaces";
 import {usersRepository} from "../repositories/users";
 import {usersQueryRepository} from "../repositories/users/query";
+import {v4 as uuidv4} from "uuid";
 
 export const authService = {
   async confirmEmail(code: string): Promise<boolean> {
@@ -45,6 +47,9 @@ export const authService = {
     return passwordHash === user.accountData.passwordHash
       ? user.id
       : false
+  },
+  async recoveryUserPassword(email: string) {
+
   },
   async _generateHash(password: string, passwordSalt: string) {
     return await bcrypt.hash(password, passwordSalt)

@@ -1,8 +1,6 @@
-import {randomUUID} from "crypto";
-import {MongoClient, UUID} from "mongodb"
 import * as dotenv from 'dotenv'
-import {IBlog, IDeviceSessions, IExpiredTokens, IPost, IRequestsCount, IUser} from "../interfaces";
 import mongoose from "mongoose";
+import {IBlog, IPost} from "../interfaces";
 
 dotenv.config()
 
@@ -21,13 +19,36 @@ const blogSchema = new mongoose.Schema<IBlog>({
   createdAt:String,
 })
 
+/// user has another structure
+// const userSchema = new mongoose.Schema({
+//   id:String,
+//   login:String,
+//   password:String,
+//   email:String,
+//   createdAt: String,
+// })
+//
+
 const userSchema = new mongoose.Schema({
   id:String,
-  login:String,
-  password:String,
-  email:String,
-  createdAt: String,
+  accountData: {
+    login: String,
+    email: String,
+    passwordHash: String,
+    passwordSalt: String,
+    createdAt: String
+  },
+  emailConfirmation: {
+    confirmationCode: String,
+    expirationDate: Date,
+    isConfirmed: Boolean,
+  },
+  passwordRecovery: {
+    recoveryCode: String,
+    expirationDate: Date
+  }
 })
+
 
 const postSchema = new mongoose.Schema<IPost>({
   id: String,

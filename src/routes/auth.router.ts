@@ -1,15 +1,20 @@
+import bcrypt from "bcrypt";
 import {randomUUID} from "crypto";
+import add from "date-fns/add";
 import {Request, Response, Router} from "express";
 import {body} from "express-validator";
+import {v4 as uuidv4} from "uuid";
+import {emailAdapter} from "../adapters/emailAdapter";
 import {jwtService} from "../application/jwt/jwt.service";
-import {DeviceSessionModel} from "../db/db";
+import {DeviceSessionModel, UserModel} from "../db/db";
 import {emailPattern, errorsValidation, passwordPattern} from "../helpers/utils";
 import {RequestWithBody} from "../interfaces";
 import {
   AccessTokenAuthMiddleware,
-  RefreshTokenAuthMiddleware,
+  RefreshTokenAuthMiddleware, RequestErrorsValidationMiddleware,
   RequestsLimitMiddleware
 } from "../middlewares/middlewares";
+import {usersRepository} from "../repositories/users";
 import {usersQueryRepository} from "../repositories/users/query";
 import {authService} from "../services/auth.service";
 import {securityService} from "../services/security.service";
@@ -185,6 +190,63 @@ authRouter.post('/registration-email-resending',
     } else {
       res.sendStatus(400)
     }
+  })
+
+authRouter.post('/password-recovery',
+  RequestsLimitMiddleware,
+  body('email').notEmpty().trim().isEmail().withMessage('incorrect body'),
+  RequestErrorsValidationMiddleware,
+  async (req: RequestWithBody<{ email: string }>, res: Response) => {
+    const {email} = req.body
+
+    const user = await usersQueryRepository.findUserByEmail(email)
+    if (!user) {
+      res.sendStatus(204)
+      return
+    }
+
+    console.log('user', user)
+
+    const passwordRecoveryCode = uuidv4()
+    const expirationDate = add(new Date(), {hours: 1})
+    const result = await emailAdapter.recoverUserPassword(email, passwordRecoveryCode)
+
+    if (result.messageId) {
+      await usersRepository.updateUserRecoveryPasswordCode(user.id, passwordRecoveryCode, expirationDate)
+    }
+    /// gcheck
+    res.sendStatus(204)
+  })
+
+authRouter.post('/new-password',
+  RequestsLimitMiddleware,
+  body('newPassword').notEmpty().trim().isLength({min: 6, max: 20}).withMessage('incorrect new password'),
+  body('recoveryCode').notEmpty().trim()
+    .custom(async (recoveryCode: string) => {
+      const user = await usersQueryRepository.findUserByPasswordRecoveryCode(recoveryCode)
+      if (user?.passwordRecovery?.recoveryCode !== recoveryCode) {
+        throw new Error('incorrect recovery code')
+      }
+    })
+    .withMessage('incorrect recovery code'),
+  RequestErrorsValidationMiddleware,
+  async (req: RequestWithBody<{ newPassword: string, recoveryCode: string }>, res: Response) => {
+    const {newPassword, recoveryCode} = req.body
+
+    const user = await usersQueryRepository.findUserByPasswordRecoveryCode(recoveryCode)
+
+    const passwordSalt = await bcrypt.genSalt(10)
+    const passwordHash = await authService._generateHash(newPassword, passwordSalt)
+
+    await UserModel
+      .updateOne({id: user?.id}, {
+        $set: {
+          'accountData.passwordSalt': passwordSalt,
+          'accountData.passwordHash': passwordHash
+        }
+      })
+
+    res.sendStatus(204)
   })
 
 authRouter.post('/refresh-token',

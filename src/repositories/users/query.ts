@@ -56,7 +56,7 @@ export const usersQueryRepository = {
     return UserModel.findOne({'accountData.login': login}, projection)
   },
   findUserByEmail(email: string, projection?: {_id: 0}): any {
-    return UserModel.findOne({'accountData.email': email}, projection)
+    return UserModel.findOne({'accountData.email': email}, projection).lean()
   },
   findUserByLoginOrEmail(loginOrEmail: string, projection?: {_id: 0}): Promise<IUserDb| null> {
     return UserModel.findOne(
@@ -66,4 +66,7 @@ export const usersQueryRepository = {
   findUserByConfirmationCode(confirmationCode: string, projection?: {_id: 0}): any {
     return UserModel.findOne({'emailConfirmation.confirmationCode': confirmationCode}, projection)
   },
+  findUserByPasswordRecoveryCode(code: string) {
+    return UserModel.findOne({'passwordRecovery.recoveryCode': code}).lean()
+  }
 }

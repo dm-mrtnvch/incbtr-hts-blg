@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt"
 import add from "date-fns/add";
+import e from "express";
 import {FindOptions, SortDirection} from "mongodb";
 import {v4 as uuidv4} from "uuid";
 import {emailAdapter} from "../adapters/emailAdapter";
@@ -92,6 +93,18 @@ export const usersService = {
     return this._createUser(login, password, email, emailConfirmation)
   },
 
+  async updatePasswordRecoveryCode(email: string, recoveryCode: string) {
+    const expirationDate = add(new Date(), {hours: 1})
+    const user = usersQueryRepository.findUserByEmail(email)
+
+    if (user) {
+      const result = await usersRepository.updateUserRecoveryPasswordCode(user.id, recoveryCode, expirationDate)
+      return !!result.modifiedCount
+    } else {
+      return false
+    }
+  },
+
   async deleteUserById(id: string) {
     return usersRepository.deleteUserById(id)
   },
@@ -130,7 +143,11 @@ export const usersService = {
           passwordSalt,
           createdAt: new Date().toISOString()
         },
-        emailConfirmation
+        emailConfirmation,
+        passwordRecovery: {
+          recoveryCode: null,
+          expirationDate: null
+        }
       }
 
       await usersRepository.createUser(newUser)
