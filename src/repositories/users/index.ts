@@ -1,38 +1,18 @@
-import {FindOptions} from "mongodb";
-import {UserModel} from "../../db/db";
-import {IUser} from "../../interfaces";
 import {v4 as uuidv4} from "uuid";
+import {UserModel} from "../../db/db";
 
 export const usersRepository = {
-  getAllUsers(filterOptions: any, findOptions: FindOptions) {
+  /// tipization
+  async createUser(newUser: any): Promise<any> {
+    const createdUser = await UserModel.create(newUser)
+    const {id, login, email, createdAt} = createdUser
 
-    // refactor
-    const conditions = []
-
-    if (filterOptions.searchLoginTerm) {
-      conditions.push({login: {$regex: filterOptions.searchLoginTerm, $options: 'i'}})
+    return {
+      id,
+      login,
+      email,
+      createdAt
     }
-
-    if (filterOptions.searchEmailTerm) {
-      conditions.push({email: {$regex: filterOptions.searchEmailTerm, $options: 'i'}})
-    }
-
-    const filter = conditions.length
-      ? {$or: conditions}
-      : {}
-
-    return UserModel.find(filter, findOptions).toArray()
-  },
-  /// may be add to usersQueryRepository
-  findUserByLoginOrEmail(loginOrEmail: string) {
-    return UserModel.findOne({$or: [{login: loginOrEmail}, {email: loginOrEmail}]})
-  },
-  findUserByConfirmationCode(confirmationCode: string): any {
-    return UserModel.findOne({'emailConfirmation.confirmationCode': confirmationCode}, {projection: {_id: 0}})
-  },
-  async createUser(newUser: any): Promise<any>   {
-    return UserModel.insertOne({...newUser})
-
   },
   async updateConfirmation(id: string): Promise<boolean> {
     const result = await UserModel.updateOne({id}, {
@@ -43,14 +23,11 @@ export const usersRepository = {
   },
   async updateConfirmationCode(id: string) {
     const newConfirmationCode = uuidv4()
-
-    const result = await UserModel.updateOne({id}, {
+    /// await for tests?
+    return UserModel.updateOne({id}, {
       $set: {'emailConfirmation.confirmationCode': newConfirmationCode}
     })
-
-    return result
   },
-
   async deleteUserById(id: string) {
     const response = await UserModel.deleteOne({id})
     return !!response.deletedCount

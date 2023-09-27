@@ -136,7 +136,7 @@ authRouter.post('/registration-confirmation',
   RequestsLimitMiddleware,
 
   body('code').notEmpty().trim().custom(async (code) => {
-    const user = await usersRepository.findUserByConfirmationCode(code)
+    const user = await usersQueryRepository.findUserByConfirmationCode(code)
 
     if (user.emailConfirmation.isConfirmed) {
       throw new Error('already confirmed')

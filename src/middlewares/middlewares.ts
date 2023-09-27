@@ -1,6 +1,5 @@
 import {NextFunction, Request, Response} from "express";
 import {ValidationError, validationResult} from "express-validator";
-import {log} from "util";
 import {jwtService} from "../application/jwt/jwt.service";
 import {requestsCollection} from "../db/db";
 import {RequestErrorsValidationType} from "../interfaces";

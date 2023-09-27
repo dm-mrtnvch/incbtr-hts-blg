@@ -1,13 +1,11 @@
+import bcrypt from "bcrypt"
 import add from "date-fns/add";
-import {ca} from "date-fns/locale";
-import {Filter, FindOptions, SortDirection, UUID} from "mongodb";
+import {FindOptions, SortDirection} from "mongodb";
+import {v4 as uuidv4} from "uuid";
 import {emailAdapter} from "../adapters/emailAdapter";
-import {UserModel} from "../db/db";
-import {EmailConfirmationType, IUser, IUserDb, IUserView} from "../interfaces";
+import {EmailConfirmationType} from "../interfaces";
 import {usersRepository} from "../repositories/users";
 import {usersQueryRepository} from "../repositories/users/query";
-import {v4 as uuidv4} from "uuid";
-import bcrypt from "bcrypt"
 
 export const usersService = {
   async getAllUsers(
@@ -48,13 +46,19 @@ export const usersService = {
     const totalCount = await usersQueryRepository.getAllUsersCount(filterOptions)
     const totalPagesCount = Math.ceil(totalCount / pageSize)
 
-    const usersFindOptions: FindOptions = {
-      projection: {_id: 0, password: 0, passwordHash: 0, passwordSalt: 0},
+    const projection = {
+      _id: 0,
+      password: 0,
+      passwordHash: 0,
+      passwordSalt: 0,
+    }
+
+    const findOptions: FindOptions = {
       sort: {[sortBy]: sortDirection},
       skip: skipCount,
       limit: pageSize,
     }
-    const users = await usersRepository.getAllUsers(filterOptions, usersFindOptions)
+    const users = await usersQueryRepository.getAllUsers(filterOptions, projection, findOptions)
 
     return {
       pagesCount: totalPagesCount,
@@ -91,24 +95,24 @@ export const usersService = {
   async deleteUserById(id: string) {
     return usersRepository.deleteUserById(id)
   },
-  async checkCredentials(loginOrEmail: string, password: string) {
-    const user: any = await usersRepository.findUserByLoginOrEmail(loginOrEmail)
-
-    if (!user) {
-      return false
-    }
-
-    if (!user.emailConfirmation.isConfirmed) {
-      return false
-    }
-    const passwordHash = await this._generateHash(password, user.accountData.passwordSalt)
-
-    if (passwordHash === user.passwordHash) {
-      return user.id
-    } else {
-      return false
-    }
-  },
+  // async checkCredentials(loginOrEmail: string, password: string) {
+  //   const user: any = await usersQueryRepository.findUserByLoginOrEmail(loginOrEmail)
+  //
+  //   if (!user) {
+  //     return false
+  //   }
+  //
+  //   if (!user.emailConfirmation.isConfirmed) {
+  //     return false
+  //   }
+  //   const passwordHash = await this._generateHash(password, user.accountData.passwordSalt)
+  //
+  //   if (passwordHash === user.passwordHash) {
+  //     return user.id
+  //   } else {
+  //     return false
+  //   }
+  // },
   async _generateHash(password: string, passwordSalt: string) {
     return await bcrypt.hash(password, passwordSalt)
   },
@@ -117,7 +121,7 @@ export const usersService = {
       const passwordSalt = await bcrypt.genSalt(10)
       const passwordHash = await this._generateHash(password, passwordSalt)
 
-      const newUser: any= {
+      const newUser: any = {
         id: uuidv4(),
         accountData: {
           login,
@@ -141,7 +145,7 @@ export const usersService = {
         }
       }
       return newUser
-    } catch (e){
+    } catch (e) {
       console.log(e)
       return false
     }

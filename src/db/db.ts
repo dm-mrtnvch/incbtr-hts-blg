@@ -48,8 +48,8 @@ const commentSchema = new mongoose.Schema({
   },
   createdAt: String,
 })
-export const BlogModel = mongoose.model('blogs', blogSchema);
 export const UserModel = mongoose.model('users', userSchema)
+export const BlogModel = mongoose.model('blogs', blogSchema);
 export const PostModel = mongoose.model('posts', postSchema)
 export const CommentModel = mongoose.model('comments', commentSchema)
 

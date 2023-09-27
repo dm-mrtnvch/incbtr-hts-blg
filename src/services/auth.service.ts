@@ -6,7 +6,7 @@ import {usersQueryRepository} from "../repositories/users/query";
 
 export const authService = {
   async confirmEmail(code: string): Promise<boolean> {
-    const user = await usersRepository.findUserByConfirmationCode(code)
+    const user = await usersQueryRepository.findUserByConfirmationCode(code)
 
     if (!user || user.emailConfirmation.isConfirmed || new Date() > user.emailConfirmation.expirationDate) {
       return false

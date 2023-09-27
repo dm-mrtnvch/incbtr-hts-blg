@@ -77,7 +77,7 @@ commentsRouter.delete('/:commentId',
     }
 
     /// is chaining necessary here?
-    if (comment.commentatorInfo.userId !== req.userId) {
+    if (comment.commentatorInfo?.userId !== req.userId) {
       res.sendStatus(403)
       return
     }
