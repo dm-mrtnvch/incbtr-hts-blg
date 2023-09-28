@@ -1,6 +1,5 @@
 import jwt from 'jsonwebtoken'
-import {UUID} from "mongodb";
-import {expiredTokensCollection} from "../../db/db";
+// import {expiredTokensCollection} from "../../db/db";
 const accessTokenSecret = '123'
 
 export type JwtPayload = {
@@ -48,17 +47,17 @@ export const jwtService = {
     return new Date(payload.iat * 1000).toISOString()
 
   },
-  getCurrentDeviceIdByToken(token: string) {
-    const payload: any = jwt.decode(token)
-    return payload.deviceId
-
-  },
-  async addRefreshTokenToBlacklist(token: string) {
-    return  expiredTokensCollection.insertOne({token})
-
-
-  },
-  async isRefreshTokenExistInBlackList(token: string) {
-    return expiredTokensCollection.findOne({token})
-  }
+  // getCurrentDeviceIdByToken(token: string) {
+  //   const payload: any = jwt.decode(token)
+  //   return payload.deviceId
+  //
+  // },
+  // async addRefreshTokenToBlacklist(token: string) {
+  //   return  expiredTokensCollection.insertOne({token})
+  //
+  //
+  // },
+  // async isRefreshTokenExistInBlackList(token: string) {
+  //   return expiredTokensCollection.findOne({token})
+  // }
 }

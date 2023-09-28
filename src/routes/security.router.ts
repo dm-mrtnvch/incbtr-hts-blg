@@ -1,32 +1,29 @@
 import {Request, Response, Router} from "express";
-import {jwtService} from "../application/jwt/jwt.service";
-import {deviceSessionsCollection} from "../db/db";
-import {RequestWithQuery} from "../interfaces";
-import {AccessTokenAuthMiddleware, RefreshTokenAuthMiddleware} from "../middlewares/middlewares";
+import {DeviceSessionModel} from "../db/db";
+import {RefreshTokenAuthMiddleware} from "../middlewares/middlewares";
+import {securityQueryRepository} from "../repositories/security/query";
+import {securityService} from "../services/security.service";
 
 export const securityRouter = Router()
 
 securityRouter.get('/devices',
   RefreshTokenAuthMiddleware,
   async (req: Request, res: Response) => {
-    const { userId} =req.jwtPayload
-    const activeSessions = await deviceSessionsCollection.find({userId},{projection: {_id: 0, userId: 0}}).toArray()
+    const {userId} = req.jwtPayload
+    const activeSessions = await securityQueryRepository.getActiveSessionsByUserId(userId)
     res.send(activeSessions)
-
   })
 
 securityRouter.delete('/devices',
   RefreshTokenAuthMiddleware,
   async (req: Request, res: Response) => {
+    const {deviceId, userId, iat} = req.jwtPayload
 
-    const {deviceId, userId, iat} =req.jwtPayload
+    const device = await securityQueryRepository.getDeviceSessionByUserIdAndDeviceId(userId, deviceId)
+    if (!device) return res.sendStatus(401)
+    if (device.lastActiveDate !== new Date(iat * 1000).toISOString()) return res.sendStatus(401)
 
-    const device = await deviceSessionsCollection.findOne({deviceId, userId})
-    if(!device) return res.sendStatus(401)
-    if(device.lastActiveDate !== new Date(iat * 1000).toISOString()) return res.sendStatus(401)
-
-    await deviceSessionsCollection.deleteMany({userId, deviceId: {$ne: deviceId}})
-
+    await securityService.deleteDeviceSessionsExceptCurrent(userId, deviceId)
     return res.sendStatus(204)
   })
 
@@ -34,15 +31,18 @@ securityRouter.delete('/devices/:deviceId',
   RefreshTokenAuthMiddleware,
   async (req: Request, res: Response) => {
     const {deviceId} = req.params
-    const { userId, iat} =req.jwtPayload
+    const {userId, iat} = req.jwtPayload
 
-    const device = await deviceSessionsCollection.findOne({deviceId})
-    if(!device) return res.sendStatus(404)
-      if(device.userId !== userId) return res.sendStatus(403)
+    const device = await DeviceSessionModel.findOne({deviceId})
+    if (!device) return res.sendStatus(404)
+    if (device.userId !== userId) return res.sendStatus(403)
     // if(device.lastActiveDate !== new Date(iat * 1000).toISOString()) return res.sendStatus(401)
 
+    const isDeleted = await securityService.deleteSessionByDeviceId(deviceId)
 
-        await deviceSessionsCollection.deleteOne({deviceId})
-
-    return res.sendStatus(204)
+    if (isDeleted) {
+      return res.sendStatus(204)
+    } else {
+      return res.sendStatus(404)
+    }
   })

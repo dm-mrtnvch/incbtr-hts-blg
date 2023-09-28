@@ -1,7 +1,7 @@
 import {NextFunction, Request, Response} from "express";
 import {ValidationError, validationResult} from "express-validator";
 import {jwtService} from "../application/jwt/jwt.service";
-import {requestsCollection} from "../db/db";
+import {RequestsModel} from "../db/db";
 import {RequestErrorsValidationType} from "../interfaces";
 import {usersQueryRepository} from "../repositories/users/query";
 
@@ -119,13 +119,13 @@ export const RequestsLimitMiddleware = async (req: Request, res: Response, next:
     date: new Date()
   }
 
-  const count = await requestsCollection.countDocuments({URL, IP, date: {$gte: date}})
+  const count = await RequestsModel.countDocuments({URL, IP, date: {$gte: date}})
 
   if (count + 1 > 5) {
     res.sendStatus(429)
     return
   } else {
-    await requestsCollection.insertOne(newRequest)
+    await RequestsModel.insertOne(newRequest)
 
     return next()
   }

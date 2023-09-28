@@ -1,14 +1,6 @@
 import cookieParser from "cookie-parser";
 import express, {Request, Response} from 'express'
-import {
-  BlogModel,
-  CommentModel,
-  deviceSessionsCollection,
-  PostModel,
-  requestsCollection,
-  runDb,
-  UserModel
-} from "./db/db";
+import {BlogModel, CommentModel, DeviceSessionModel, PostModel, RequestsModel, runDb, UserModel} from "./db/db";
 import {authRouter} from "./routes/auth.router";
 import {blogsRouter} from "./routes/blogs.router";
 import {commentsRouter} from "./routes/comments.router";
@@ -34,8 +26,8 @@ app.delete('/testing/all-data', async (req: Request, res: Response) => {
        PostModel.deleteMany({}),
        UserModel.deleteMany({}),
        CommentModel.deleteMany({}),
-       requestsCollection.deleteMany({}),
-       deviceSessionsCollection.deleteMany({})]
+       RequestsModel.deleteMany({}),
+       DeviceSessionModel.deleteMany({})]
    )
   res.sendStatus(204)
 })

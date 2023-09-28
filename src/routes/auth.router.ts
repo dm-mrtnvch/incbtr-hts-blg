@@ -1,18 +1,18 @@
 import {randomUUID} from "crypto";
 import {Request, Response, Router} from "express";
-import {body, checkSchema} from "express-validator";
+import {body} from "express-validator";
 import {jwtService} from "../application/jwt/jwt.service";
-import {deviceSessionsCollection} from "../db/db";
+import {DeviceSessionModel} from "../db/db";
 import {emailPattern, errorsValidation, passwordPattern} from "../helpers/utils";
 import {RequestWithBody} from "../interfaces";
 import {
   AccessTokenAuthMiddleware,
-  RequestsLimitMiddleware,
-  RefreshTokenAuthMiddleware
+  RefreshTokenAuthMiddleware,
+  RequestsLimitMiddleware
 } from "../middlewares/middlewares";
-import {usersRepository} from "../repositories/users";
 import {usersQueryRepository} from "../repositories/users/query";
 import {authService} from "../services/auth.service";
+import {securityService} from "../services/security.service";
 import {usersService} from "../services/users.service";
 
 export const authRouter = Router()
@@ -43,15 +43,16 @@ authRouter.post('/login',
       const accessToken = await jwtService.createJwt(userId)
       const refreshToken = await jwtService.createRefreshToken(userId, deviceId)
 
-      await deviceSessionsCollection.insertOne({
+      const newSession = {
         ip: req.ip,
         title: req.headers['user-agent'] || 'asdf',
         deviceId,
         userId,
         lastActiveDate: jwtService.getLastActiveDateFromToken(refreshToken)
-      })
+      }
 
-      //lastActiveDate === время выписки рефреш токена
+      await securityService.createDeviceSession(newSession)
+      //lastActiveDate === refresh token issuance time
 
       res
         .cookie('refreshToken', refreshToken, {httpOnly: true, secure: true})
@@ -68,23 +69,20 @@ authRouter.post('/logout',
   async (req: Request, res: Response) => {
     // await jwtService.addRefreshTokenToBlacklist(req.cookies.refreshToken)
     const {userId, deviceId, iat} = req.jwtPayload
-    const device = await deviceSessionsCollection.findOne({deviceId, userId})
+    const device = await DeviceSessionModel.findOne({deviceId, userId})
     if (!device) return res.sendStatus(401)
     if (device.lastActiveDate !== new Date(iat * 1000).toISOString()) return res.sendStatus(401)
 
-    await deviceSessionsCollection.deleteOne({deviceId, userId})
+    await securityService.deleteSessionByUserIdAndDeviceId(userId, deviceId)
     return res.clearCookie('refreshToken').status(204).send()
   })
 
 authRouter.get('/me',
   RequestsLimitMiddleware,
-
-  /// is refresh requires here?
   /// is refresh requires here?
   AccessTokenAuthMiddleware,
   async (req: Request, res: Response) => {
     const user = await usersQueryRepository.getUserById(req.userId)
-
 
     res.send({
       email: user.accountData.email,
@@ -96,7 +94,6 @@ authRouter.get('/me',
 
 authRouter.post('/registration',
   RequestsLimitMiddleware,
-
   body('login').trim().notEmpty().isLength({min: 3, max: 10})
     .custom(async (login) => {
       const userWithLogin = await usersQueryRepository.findUserByLogin(login);
@@ -122,7 +119,6 @@ authRouter.post('/registration',
 
     const {login, email, password} = req.body
 
-
     const user = await usersService.createUserByRegistration(login, password, email)
 
     if (user) {
@@ -134,7 +130,6 @@ authRouter.post('/registration',
 
 authRouter.post('/registration-confirmation',
   RequestsLimitMiddleware,
-
   body('code').notEmpty().trim().custom(async (code) => {
     const user = await usersQueryRepository.findUserByConfirmationCode(code)
 
@@ -151,7 +146,6 @@ authRouter.post('/registration-confirmation',
     }
 
     const {code} = req.body
-
     const isConfirmed = await authService.confirmEmail(code)
 
     if (isConfirmed) {
@@ -184,7 +178,6 @@ authRouter.post('/registration-email-resending',
     }
 
     const {email} = req.body
-
     const resendEmailResult: any = await authService.resendRegistrationConfirmEmail(email)
 
     if (resendEmailResult.messageId) {
@@ -200,7 +193,7 @@ authRouter.post('/refresh-token',
   RefreshTokenAuthMiddleware,
   async (req: Request, res: Response) => {
     const {userId, deviceId, iat} = req.jwtPayload
-    const device = await deviceSessionsCollection.findOne({deviceId, userId})
+    const device = await DeviceSessionModel.findOne({deviceId, userId})
     if (!device) return res.sendStatus(401)
     if (device.lastActiveDate !== new Date(iat * 1000).toISOString()) return res.sendStatus(401)
 
@@ -211,7 +204,7 @@ authRouter.post('/refresh-token',
       // await jwtService.addRefreshTokenToBlacklist(req.cookies.refreshToken)
 
       const lastActiveDate = jwtService.getLastActiveDateFromToken(newRefreshToken)
-      await deviceSessionsCollection.updateOne({userId, deviceId}, {$set: {lastActiveDate}})
+      await securityService.updateDeviceSessionLastActiveDate(userId, deviceId, lastActiveDate)
 
       res.cookie('refreshToken', newRefreshToken, {httpOnly: true, secure: true})
       res.send(newAccessToken)

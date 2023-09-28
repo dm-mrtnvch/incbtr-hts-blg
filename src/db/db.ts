@@ -48,23 +48,46 @@ const commentSchema = new mongoose.Schema({
   },
   createdAt: String,
 })
+
+const deviceSchema = new mongoose.Schema({
+  ip: String,
+  title: String,
+  deviceId: String,
+  userId: String,
+  lastActiveDate: String,
+})
+
+const requestsSchema = new mongoose.Schema({
+  IP: String,
+  URL: String,
+  date: Date
+})
+
+
+
 export const UserModel = mongoose.model('users', userSchema)
+export const DeviceSessionModel = mongoose.model('deviceSessions', deviceSchema)
+export const RequestsModel = mongoose.model('requests', requestsSchema)
+
 export const BlogModel = mongoose.model('blogs', blogSchema);
 export const PostModel = mongoose.model('posts', postSchema)
 export const CommentModel = mongoose.model('comments', commentSchema)
 
 
-// export const commentsCollection = client.db().collection('comments')
 // const client = new MongoClient(url)
+
+// export const usersCollection = client.db().collection<IUser>('users')
+// export const authCollection = client.db().collection('auth')
 
 // export const blogsCollection = client.db().collection<IBlog>('blogs')
 // export const postsCollection = client.db().collection<IPost>('posts')
-// export const usersCollection = client.db().collection<IUser>('users')
-// export const authCollection = client.db().collection('auth')
 // export const commentsCollection = client.db().collection('comments')
-// export const expiredTokensCollection = client.db().collection<IExpiredTokens>('expiredTokens')
 // export const requestsCollection = client.db().collection<IRequestsCount>('requests')
 // export const deviceSessionsCollection = client.db().collection<IDeviceSessions>('deviceSessions')
+
+/// to remove
+// export const expiredTokensCollection = client.db().collection<IExpiredTokens>('expiredTokens')
+
 
 
 // export const runDb = async () => {
