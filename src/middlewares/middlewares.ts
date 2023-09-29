@@ -4,6 +4,7 @@ import {jwtService} from "../application/jwt/jwt.service";
 import {RequestsModel} from "../db/db";
 import {RequestErrorsValidationType} from "../interfaces";
 import {usersQueryRepository} from "../repositories/users/query";
+import {requestsService} from "../services/requests.service";
 
 export const BasicAuthMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const adminCredentials = 'YWRtaW46cXdlcnR5'
@@ -125,8 +126,7 @@ export const RequestsLimitMiddleware = async (req: Request, res: Response, next:
     res.sendStatus(429)
     return
   } else {
-    await RequestsModel.insertOne(newRequest)
-
+    await requestsService.increaseRequestCount(newRequest)
     return next()
   }
 }

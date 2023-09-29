@@ -1,6 +1,6 @@
 import {Request} from "express";
 import {SortDirection} from "mongodb";
-import {expiredTokensCollection} from "../db/db";
+// import {expiredTokensCollection} from "../db/db";
 
 export interface IBlog {
   id: string
