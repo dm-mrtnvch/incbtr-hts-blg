@@ -1,4 +1,4 @@
-import {DeviceSessionModel} from "../../db/db";
+import {DeviceSessionModel} from "../../db/models";
 
 export const securityRepository = {
   createDeviceSession(newSession: any) {

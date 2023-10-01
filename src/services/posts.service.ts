@@ -1,6 +1,7 @@
 import {DeleteResult, FindOptions, SortDirection} from "mongodb";
 import {v4 as uuidv4} from "uuid";
-import {BlogModel, PostModel} from "../db/db";
+
+import {BlogModel, PostModel} from "../db/models";
 import {IPost} from "../interfaces";
 import {blogsQueryRepository} from "../repositories/blogs/query";
 import {postsRepository} from "../repositories/posts";

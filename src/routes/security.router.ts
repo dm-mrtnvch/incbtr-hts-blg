@@ -1,5 +1,6 @@
 import {Request, Response, Router} from "express";
-import {DeviceSessionModel} from "../db/db";
+
+import {DeviceSessionModel} from "../db/models";
 import {RefreshTokenAuthMiddleware} from "../middlewares/middlewares";
 import {securityQueryRepository} from "../repositories/security/query";
 import {securityService} from "../services/security.service";

@@ -1,6 +1,7 @@
 import {ca} from "date-fns/locale";
 import {FilterQuery} from "mongoose";
-import {BlogModel, PostModel} from "../../db/db";
+
+import {BlogModel, PostModel} from "../../db/models";
 import {IBlog, IPost} from "../../interfaces";
 
 export type ProjectionType = {}

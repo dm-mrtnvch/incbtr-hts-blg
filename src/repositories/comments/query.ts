@@ -1,4 +1,4 @@
-import {CommentModel} from "../../db/db";
+import {CommentModel} from "../../db/models";
 import {CommentViewInterface, LIKE_STATUS_ENUM} from "../../interfaces";
 
 export const commentsQueryRepository = {

@@ -1,4 +1,4 @@
-import {BlogModel} from "../../db/db";
+import {BlogModel} from "../../db/models";
 import {IBlog} from "../../interfaces";
 
 export const blogsQueryRepository = {

@@ -1,6 +1,7 @@
 import cookieParser from "cookie-parser";
 import express, {Request, Response} from 'express'
-import {BlogModel, CommentModel, DeviceSessionModel, PostModel, RequestsModel, runDb, UserModel} from "./db/db";
+import {runDb} from "./db/db";
+import {BlogModel, CommentModel, DeviceSessionModel, PostModel, RequestsModel, UserModel} from "./db/models";
 import {authRouter} from "./routes/auth.router";
 import {blogsRouter} from "./routes/blogs.router";
 import {commentsRouter} from "./routes/comments.router";

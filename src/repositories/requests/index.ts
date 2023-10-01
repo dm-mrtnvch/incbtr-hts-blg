@@ -1,4 +1,4 @@
-import {RequestsModel} from "../../db/db";
+import {RequestsModel} from "../../db/models";
 
 export const requestsRepository = {
   async increaseRequestCount(newRequest: any){

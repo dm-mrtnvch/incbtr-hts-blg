@@ -1,6 +1,7 @@
 import {FindOptions, SortDirection, UpdateResult} from "mongodb";
 import {v4 as uuidv4} from "uuid";
-import {CommentModel} from "../db/db";
+
+import {CommentModel} from "../db/models";
 import {CommentViewInterface, PaginationInterface} from "../interfaces";
 import {commentsRepository} from "../repositories/comments";
 import {commentsQueryRepository} from "../repositories/comments/query";

@@ -6,7 +6,8 @@ import {body} from "express-validator";
 import {v4 as uuidv4} from "uuid";
 import {emailAdapter} from "../adapters/emailAdapter";
 import {jwtService} from "../application/jwt/jwt.service";
-import {DeviceSessionModel, UserModel} from "../db/db";
+
+import {DeviceSessionModel, UserModel} from "../db/models";
 import {emailPattern, errorsValidation, passwordPattern} from "../helpers/utils";
 import {RequestWithBody} from "../interfaces";
 import {

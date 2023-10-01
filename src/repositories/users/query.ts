@@ -1,6 +1,7 @@
 import {Filter, FindOptions} from "mongodb";
 import {FilterQuery} from "mongoose";
-import {UserModel} from "../../db/db";
+
+import {UserModel} from "../../db/models";
 import {IUser, IUserDb, IUserView} from "../../interfaces";
 
 export const usersQueryRepository = {

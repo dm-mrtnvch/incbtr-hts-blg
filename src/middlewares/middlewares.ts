@@ -1,7 +1,8 @@
 import {NextFunction, Request, Response} from "express";
 import {ValidationError, validationResult} from "express-validator";
 import {jwtService} from "../application/jwt/jwt.service";
-import {RequestsModel} from "../db/db";
+
+import {RequestsModel} from "../db/models";
 import {RequestErrorsValidationType} from "../interfaces";
 import {usersQueryRepository} from "../repositories/users/query";
 import {requestsService} from "../services/requests.service";

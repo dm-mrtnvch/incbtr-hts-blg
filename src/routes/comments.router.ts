@@ -1,6 +1,7 @@
 import {Request, Response, Router} from "express";
 import {body} from "express-validator";
-import {CommentModel} from "../db/db";
+
+import {CommentModel} from "../db/models";
 import {errorsValidation} from "../helpers/utils";
 import {LIKE_STATUS_ENUM, RequestWithParams, RequestWithParamsAndBody} from "../interfaces";
 import {

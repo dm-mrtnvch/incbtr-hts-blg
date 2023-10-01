@@ -1,5 +1,6 @@
 import {v4 as uuidv4} from "uuid";
-import {UserModel} from "../../db/db";
+
+import {UserModel} from "../../db/models";
 import {usersQueryRepository} from "./query";
 
 export const usersRepository = {

@@ -1,6 +1,7 @@
 import {UpdateResult} from "mongodb";
 import {v4 as uuidv4} from "uuid";
-import {CommentModel} from "../../db/db";
+
+import {CommentModel} from "../../db/models";
 import {LIKE_STATUS_ENUM} from "../../interfaces";
 
 export const commentsRepository = {

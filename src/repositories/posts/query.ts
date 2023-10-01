@@ -1,6 +1,6 @@
 import {DeleteResult, FindOptions, UpdateResult} from "mongodb";
-import {BlogModel, PostModel} from "../../db/db";
-import {blogsDb, postsDb} from "../../db/mock_data";
+
+import {BlogModel, PostModel} from "../../db/models";
 import {IPost} from "../../interfaces";
 import {blogsRepository} from "../blogs";
 import { v4 as uuidv4 } from 'uuid';
