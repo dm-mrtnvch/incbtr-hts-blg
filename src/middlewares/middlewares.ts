@@ -27,7 +27,7 @@ export const AccessTokenAuthMiddleware = async (req: Request, res: Response, nex
   const [_, token] = auth.split(' ')
   const userId = await jwtService.getUserIdByJwt(token)
   if (!userId) {
-    console.log('no userId')
+    // console.log('no userId')
     res.sendStatus(401)
     return
   }
@@ -37,10 +37,23 @@ export const AccessTokenAuthMiddleware = async (req: Request, res: Response, nex
     res.sendStatus(401)
     return
   }
-  console.log(user, 'in at')
+  // console.log(user, 'in at')
   req.userId = userId
   next()
 }
+
+export const LightAccessTokenAuthMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+  const auth = req.headers.authorization
+  if (!auth) return next()
+
+  const [_, token] = auth.split(' ')
+  const userId = await jwtService.getUserIdByJwt(token)
+  if (!userId) return next()
+
+  req.userId = userId
+  return next()
+}
+
 
 export const RefreshTokenAuthMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   const currentRefreshToken = req.cookies.refreshToken

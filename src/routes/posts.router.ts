@@ -12,7 +12,7 @@ import {
 import {
   BasicAuthMiddleware,
   AccessTokenAuthMiddleware,
-  RequestErrorsValidationMiddleware
+  RequestErrorsValidationMiddleware, LightAccessTokenAuthMiddleware
 } from "../middlewares/middlewares";
 import {blogsQueryRepository} from "../repositories/blogs/query";
 import {commentsQueryRepository} from "../repositories/comments/query";
@@ -177,7 +177,7 @@ postsRouter.post('/:postId/comments',
 
       if (user) {
         // send as object when 4 params?
-        const newComment = await commentsService.createComment(content, user.id, user.accountData.login, postId)
+        const newComment = await commentsService.createComment(content, user.id, user?.accountData?.login, postId)
         res.status(201).send(newComment)
         return
       }
@@ -191,6 +191,7 @@ postsRouter.get('/:postId/comments',
   query('pageNumber').customSanitizer(toNumberOrUndefined),
   query('pageSize').customSanitizer(toNumberOrUndefined),
   query('sortDirection').customSanitizer(sortDirectionValueOrUndefined),
+  LightAccessTokenAuthMiddleware,
   async (req: RequestWithParamsAndQuery<
     { postId: string },
     {
@@ -210,7 +211,7 @@ postsRouter.get('/:postId/comments',
       return
     }
 
-    const comments = await commentsService.getCommentsByPostId(postId, pageNumber, pageSize, sortBy, sortDirection)
+    const comments = await commentsService.getCommentsByPostId(postId, pageNumber, pageSize, sortBy, sortDirection, req.userId)
 
     res.send(comments)
   })

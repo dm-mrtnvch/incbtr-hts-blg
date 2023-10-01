@@ -16,7 +16,8 @@ export const commentsService = {
         userLogin
       },
       createdAt: new Date().toISOString(),
-      postId
+      postId,
+      likes: []
     }
 
     return await commentsRepository.createComment(newComment)
@@ -28,12 +29,14 @@ export const commentsService = {
     pageSize: number = 10,
     sortBy: string = 'createdAt',
     sortDirection: SortDirection = 'desc',
+    userId: string,
   ): Promise<PaginationInterface<CommentViewInterface>> {
 
     const skipCount = (pageNumber - 1) * pageSize
 
     const projection = {
       _id: 0,
+      __v: 0,
       postId: 0
     }
 
@@ -43,7 +46,7 @@ export const commentsService = {
       limit: pageSize
     }
 
-    const comments = await commentsQueryRepository.getCommentsByPostId(postId, projection, findOptions)
+    const comments = await commentsQueryRepository.getCommentsByPostId(postId, projection, findOptions, userId)
     const totalCount = await commentsQueryRepository.getCommentsCount(postId)
     const pagesCount = Math.ceil(totalCount / pageSize)
 

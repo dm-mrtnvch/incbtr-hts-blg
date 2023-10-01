@@ -49,6 +49,7 @@ export const usersService = {
 
     const projection = {
       _id: 0,
+      __v: 0,
       password: 0,
       passwordHash: 0,
       passwordSalt: 0,

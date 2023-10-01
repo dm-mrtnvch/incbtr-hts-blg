@@ -1,11 +1,11 @@
 import * as dotenv from 'dotenv'
 import mongoose from "mongoose";
-import {IBlog, IPost} from "../interfaces";
+import {IBlog, IPost, IUserDb, LIKE_STATUS_ENUM} from "../interfaces";
 
 dotenv.config()
 
 const url = process.env.MONGO_URL || "mongodb://0.0.0.0:27017"
-if(!url){
+if (!url) {
   throw Error('didn\'t find url')
 }
 
@@ -16,21 +16,11 @@ const blogSchema = new mongoose.Schema<IBlog>({
   description: String,
   websiteUrl: String,
   isMembership: Boolean,
-  createdAt:String,
+  createdAt: String,
 })
 
-/// user has another structure
-// const userSchema = new mongoose.Schema({
-//   id:String,
-//   login:String,
-//   password:String,
-//   email:String,
-//   createdAt: String,
-// })
-//
-
-const userSchema = new mongoose.Schema({
-  id:String,
+const userSchema = new mongoose.Schema<IUserDb>({
+  id: String,
   accountData: {
     login: String,
     email: String,
@@ -60,6 +50,17 @@ const postSchema = new mongoose.Schema<IPost>({
   createdAt: String,
 })
 
+
+const commentLikeSchema = new mongoose.Schema({
+  userId: String,
+  userName: String,
+  likeStatus: {
+    type: String,
+    enum: LIKE_STATUS_ENUM,
+    default: LIKE_STATUS_ENUM.NONE
+  }
+}, {_id: false})
+
 const commentSchema = new mongoose.Schema({
   id: String,
   content: String,
@@ -67,8 +68,11 @@ const commentSchema = new mongoose.Schema({
     userId: String,
     userLogin: String,
   },
+  postId: String,
   createdAt: String,
+  likes: [commentLikeSchema]
 })
+
 
 const deviceSchema = new mongoose.Schema({
   ip: String,
@@ -85,11 +89,9 @@ const requestsSchema = new mongoose.Schema({
 })
 
 
-
-export const UserModel = mongoose.model('users', userSchema)
+export const UserModel = mongoose.model<IUserDb>('users', userSchema)
 export const DeviceSessionModel = mongoose.model('deviceSessions', deviceSchema)
 export const RequestsModel = mongoose.model('requests', requestsSchema)
-
 export const BlogModel = mongoose.model('blogs', blogSchema);
 export const PostModel = mongoose.model('posts', postSchema)
 export const CommentModel = mongoose.model('comments', commentSchema)
@@ -110,7 +112,6 @@ export const CommentModel = mongoose.model('comments', commentSchema)
 // export const expiredTokensCollection = client.db().collection<IExpiredTokens>('expiredTokens')
 
 
-
 // export const runDb = async () => {
 //   try {
 //     await client.connect()
@@ -128,6 +129,6 @@ export const runDb = async () => {
   } catch (e) {
     console.log('connection failure')
     await mongoose.disconnect()
-     // await client.close()
+    // await client.close()
   }
 }

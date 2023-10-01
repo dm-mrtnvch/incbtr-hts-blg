@@ -46,14 +46,18 @@ export type EmailConfirmationType = {
 export type IUserDb = {
   id: string
   accountData: AccountData
-  emailConfirmation: EmailConfirmationType
+  emailConfirmation: EmailConfirmationType,
+  passwordRecovery: {
+    recoveryCode: string,
+    expirationDate: Date
+  }
 }
 
 
 export interface IUserView {
   id: string
   login: string
-  password: string
+  // password: string
   email: string
   createdAt: string
 }
@@ -128,4 +132,13 @@ export interface PaginationInterface <I> {
   pageSize: number
   totalCount: number
   items: I
+}
+
+
+
+// ENUMS
+export enum LIKE_STATUS_ENUM {
+  NONE = 'None',
+  LIKE = 'Like',
+  DISLIKE = 'Dislike'
 }

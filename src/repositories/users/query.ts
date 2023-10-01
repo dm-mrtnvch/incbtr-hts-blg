@@ -1,6 +1,7 @@
 import {Filter, FindOptions} from "mongodb";
+import {FilterQuery} from "mongoose";
 import {UserModel} from "../../db/db";
-import {IUser, IUserDb} from "../../interfaces";
+import {IUser, IUserDb, IUserView} from "../../interfaces";
 
 export const usersQueryRepository = {
   /// typization
@@ -30,9 +31,9 @@ export const usersQueryRepository = {
       .limit(limit)
       .lean()
   },
-  getAllUsersCount(filterOptions: any) {
+  getAllUsersCount(filterOptions: FilterQuery<IUserDb>) {
     /// typization
-    const conditions: any= []
+    const conditions = []
 
     if (filterOptions.searchLoginTerm) {
       conditions.push({login: {$regex: filterOptions.searchLoginTerm, $options: 'i'}})
@@ -49,24 +50,25 @@ export const usersQueryRepository = {
     return UserModel.countDocuments(filter)
   },
   /// projection in params or hardcode
-  getUserById(id: string, projection?: {password: 0, _id: 0}): any {
-    return UserModel.findOne({id}, projection)
+  async getUserById(id: string): Promise<any>{
+    return UserModel.findOne({id}, { 'accountData.password': 0, _id: 0, __v: 0 }).lean()
+    // return UserModel.findOne({id}, { 'accountData.password': 0, _id: 0, __v: 0 }).lean()
   },
-  findUserByLogin(login: string, projection?: {_id: 0}) {
+  findUserByLogin(login: string, projection?: { _id: 0 }) {
     return UserModel.findOne({'accountData.login': login}, projection)
   },
-  findUserByEmail(email: string, projection?: {_id: 0}): any {
+  findUserByEmail(email: string, projection?: { _id: 0 }): any {
     return UserModel.findOne({'accountData.email': email}, projection).lean()
   },
-  findUserByLoginOrEmail(loginOrEmail: string, projection?: {_id: 0}): Promise<IUserDb| null> {
+  findUserByLoginOrEmail(loginOrEmail: string, projection?: { _id: 0 }): Promise<IUserDb | null> {
     return UserModel.findOne(
       {$or: [{'accountData.login': loginOrEmail}, {'accountData.email': loginOrEmail}]},
-      projection) as Promise<IUserDb| null>
+      projection) as Promise<IUserDb | null>
   },
-  findUserByConfirmationCode(confirmationCode: string, projection?: {_id: 0}): any {
+  findUserByConfirmationCode(confirmationCode: string, projection?: { _id: 0 }): any {
     return UserModel.findOne({'emailConfirmation.confirmationCode': confirmationCode}, projection)
   },
   findUserByPasswordRecoveryCode(code: string) {
-    return UserModel.findOne({'passwordRecovery.recoveryCode': code}).lean()
+    return UserModel.findOne({'passwordRecovery.recoveryCode': code}).lean() as any
   }
 }

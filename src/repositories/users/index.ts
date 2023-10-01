@@ -5,7 +5,7 @@ import {usersQueryRepository} from "./query";
 export const usersRepository = {
   /// tipization
   async createUser(newUser: any): Promise<any> {
-    const createdUser = await UserModel.create(newUser)
+    const createdUser = await UserModel.create(newUser) as any
     const {id, login, email, createdAt} = createdUser
 
     return {

@@ -12,7 +12,7 @@ export type JwtPayload = {
 export const jwtService = {
   async createJwt(userId: string) {
     try {
-      const token = jwt.sign({userId}, accessTokenSecret, {expiresIn: '10s'}) // 10 sec
+      const token = jwt.sign({userId}, accessTokenSecret, {expiresIn: '100000000s'}) // 10 sec
       return {
         accessToken: token
       }
@@ -21,7 +21,7 @@ export const jwtService = {
     }
   },
   async createRefreshToken(userId: any, deviceId: string) {
-    return jwt.sign({userId, deviceId}, '456', {expiresIn: '20s'}) // 20 sec
+    return jwt.sign({userId, deviceId}, '456', {expiresIn: '200000000s'}) // 20 sec
   },
   getUserIdByJwt(token: string) {
     try {
