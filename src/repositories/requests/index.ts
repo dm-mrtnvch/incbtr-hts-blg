@@ -1,7 +1,9 @@
 import {RequestsModel} from "../../db/models";
 
-export const requestsRepository = {
-  async increaseRequestCount(newRequest: any){
-      return RequestsModel.create(newRequest)
+class RequestsRepository {
+  async increaseRequestCount(newRequest: any) {
+    return RequestsModel.create(newRequest)
   }
 }
+
+export const requestsRepository = new RequestsRepository()

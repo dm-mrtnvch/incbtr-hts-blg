@@ -1,10 +1,8 @@
-import {Filter, FindOptions} from "mongodb";
 import {FilterQuery} from "mongoose";
-
 import {UserModel} from "../../db/models";
-import {IUser, IUserDb, IUserView} from "../../interfaces";
+import {IUserDb} from "../../interfaces";
 
-export const usersQueryRepository = {
+class UsersQueryRepository {
   /// typization
   getAllUsers(filterOptions: any, projection: any, findOptions: any) {
     const {sort, skip, limit} = findOptions
@@ -31,7 +29,8 @@ export const usersQueryRepository = {
       .skip(skip)
       .limit(limit)
       .lean()
-  },
+  }
+
   getAllUsersCount(filterOptions: FilterQuery<IUserDb>) {
     /// typization
     const conditions = []
@@ -49,27 +48,35 @@ export const usersQueryRepository = {
       : {}
 
     return UserModel.countDocuments(filter)
-  },
+  }
+
   /// projection in params or hardcode
-  async getUserById(id: string): Promise<any>{
-    return UserModel.findOne({id}, { 'accountData.password': 0, _id: 0, __v: 0 }).lean()
+  async getUserById(id: string): Promise<any> {
+    return UserModel.findOne({id}, {'accountData.password': 0, _id: 0, __v: 0}).lean()
     // return UserModel.findOne({id}, { 'accountData.password': 0, _id: 0, __v: 0 }).lean()
-  },
+  }
+
   findUserByLogin(login: string, projection?: { _id: 0 }) {
     return UserModel.findOne({'accountData.login': login}, projection)
-  },
+  }
+
   findUserByEmail(email: string, projection?: { _id: 0 }): any {
     return UserModel.findOne({'accountData.email': email}, projection).lean()
-  },
+  }
+
   findUserByLoginOrEmail(loginOrEmail: string, projection?: { _id: 0 }): Promise<IUserDb | null> {
     return UserModel.findOne(
       {$or: [{'accountData.login': loginOrEmail}, {'accountData.email': loginOrEmail}]},
       projection) as Promise<IUserDb | null>
-  },
+  }
+
   findUserByConfirmationCode(confirmationCode: string, projection?: { _id: 0 }): any {
     return UserModel.findOne({'emailConfirmation.confirmationCode': confirmationCode}, projection)
-  },
+  }
+
   findUserByPasswordRecoveryCode(code: string) {
     return UserModel.findOne({'passwordRecovery.recoveryCode': code}).lean() as any
   }
 }
+
+export const usersQueryRepository = new UsersQueryRepository()

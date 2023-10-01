@@ -1,11 +1,8 @@
-import {DeleteResult, FindOptions, UpdateResult} from "mongodb";
-
-import {BlogModel, PostModel} from "../../db/models";
+import {DeleteResult, UpdateResult} from "mongodb";
+import {PostModel} from "../../db/models";
 import {IPost} from "../../interfaces";
-import {blogsRepository} from "../blogs";
-import {v4 as uuidv4} from 'uuid';
 
-export const postsRepository = {
+class PostsRepository {
   /// typization
   async getAllPosts(filterOptions: any, projection: any, findOptions: any): Promise<IPost[]> {
     const {sort, skip, limit} = findOptions
@@ -17,7 +14,7 @@ export const postsRepository = {
       .skip(skip)
       .limit(limit)
       .lean()
-  },
+  }
 
   async createPost(newPost: IPost): Promise<IPost | void> {
     try {
@@ -36,7 +33,7 @@ export const postsRepository = {
     } catch (e) {
       console.log(`createPost error: ${e}`);
     }
-  },
+  }
 
   async updatePostById(id: string, title: string, shortDescription: string, content: string, blogId: string): Promise<UpdateResult> {
     return PostModel.updateOne({blogId}, {
@@ -47,9 +44,11 @@ export const postsRepository = {
         content
       }
     })
-  },
+  }
 
   async deletePostById(id: string): Promise<DeleteResult> {
     return PostModel.deleteOne({id})
   }
 }
+
+export const postsRepository = new PostsRepository()

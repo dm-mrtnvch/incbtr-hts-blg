@@ -5,7 +5,7 @@ import {blogsRepository, ProjectionType,} from "../repositories/blogs";
 import {blogsQueryRepository} from "../repositories/blogs/query";
 import {postsQueryRepository} from "../repositories/posts/query";
 
-export const blogsService = {
+class BlogsService  {
   async getAllBlogs(
     searchNameTerm: string | null = null,
     pageNumber: number = 1,
@@ -42,7 +42,7 @@ export const blogsService = {
       totalCount,
       items: blogs
     }
-  },
+  }
 
   async getBlogPostsById(
     blogId: string,
@@ -74,7 +74,7 @@ export const blogsService = {
       totalCount,
       items: posts
     }
-  },
+  }
 
   async createBlog(name: string, description: string, websiteUrl: string) {
     const newBlog: any = {
@@ -87,7 +87,7 @@ export const blogsService = {
     }
 
     return blogsRepository.createBlog(newBlog)
-  },
+  }
   async createBlogPost(title: string, shortDescription: string, content: string, blogId: string) {
     const blog = await blogsQueryRepository.getBlogById(blogId)
     const newBlogPost: IPost = {
@@ -102,14 +102,15 @@ export const blogsService = {
 
     return blogsRepository.createBlogPost(newBlogPost)
 
-  },
+  }
   /// extra void because of try catch
   async updateBlogById(id: string, name: string, description: string, websiteUrl: string): Promise<boolean | void> {
     return blogsRepository.updateBlogById(id, name, description, websiteUrl)
-  },
+  }
   /// extra void because of try catch
   async deleteBlogById(id: string): Promise<boolean | void> {
     return blogsRepository.deleteBlogById(id)
   }
 }
 
+export const blogsService = new BlogsService()

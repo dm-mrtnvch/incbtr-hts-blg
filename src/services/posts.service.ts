@@ -8,7 +8,7 @@ import {postsRepository} from "../repositories/posts";
 import {postsQueryRepository} from "../repositories/posts/query";
 import {blogsService} from "./blogs.service";
 
-export const postsService = {
+class PostsService {
   async getAllPosts(pageNumber: number = 1,
                     pageSize: number = 10,
                     sortBy: string = 'createdAt',
@@ -39,8 +39,7 @@ export const postsService = {
       totalCount,
       items: posts
     }
-  },
-
+  }
   async createPost(title: string, shortDescription: string, content: string, blogId: string) {
     const blog = await blogsQueryRepository.getBlogById(blogId)
 
@@ -59,15 +58,15 @@ export const postsService = {
     } else {
       return false
     }
-  },
-
+  }
   async updatePostById(id: string, title: string, shortDescription: string, content: string, blogId: string): Promise<boolean> {
     const updateResult = await postsRepository.updatePostById(id, title, shortDescription, content, blogId)
     return !!updateResult.modifiedCount
-  },
-
+  }
   async deletePostById(id: string): Promise<Boolean> {
     const deleteResult = await postsRepository.deletePostById(id)
     return !!deleteResult.deletedCount
   }
 }
+
+export const postsService = new PostsService()

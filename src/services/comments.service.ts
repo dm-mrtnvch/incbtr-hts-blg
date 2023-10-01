@@ -1,13 +1,10 @@
-import {FindOptions, SortDirection, UpdateResult} from "mongodb";
-import {v4 as uuidv4} from "uuid";
+import {FindOptions, SortDirection} from "mongodb"
+import {v4 as uuidv4} from "uuid"
+import {CommentViewInterface, PaginationInterface} from "../interfaces"
+import {commentsRepository} from "../repositories/comments"
+import {commentsQueryRepository} from "../repositories/comments/query"
 
-import {CommentModel} from "../db/models";
-import {CommentViewInterface, PaginationInterface} from "../interfaces";
-import {commentsRepository} from "../repositories/comments";
-import {commentsQueryRepository} from "../repositories/comments/query";
-
-
-export const commentsService = {
+class CommentsService {
   async createComment(content: string, userId: string, userLogin: string, postId: string) {
     const newComment = {
       id: uuidv4(),
@@ -22,8 +19,7 @@ export const commentsService = {
     }
 
     return await commentsRepository.createComment(newComment)
-  },
-
+  }
   async getCommentsByPostId(
     postId: string,
     pageNumber: number = 1,
@@ -58,15 +54,15 @@ export const commentsService = {
       totalCount,
       items: comments
     }
-  },
-
+  }
   async updatedCommentById(id: string, content: string): Promise<boolean> {
     const response = await commentsRepository.updateCommentById(id, content)
     return !!response?.modifiedCount
-  },
-
+  }
   async deleteCommentById(id: string) {
     const response = await commentsRepository.deleteCommentById(id)
     return !!response.deletedCount
   }
 }
+
+export const commentsService = new CommentsService()

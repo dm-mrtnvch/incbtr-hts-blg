@@ -1,14 +1,14 @@
 import {DeviceSessionModel} from "../../db/models";
 
-export const securityQueryRepository = {
+class SecurityQueryRepository {
   /// what about projection
   getActiveSessionsByUserId(userId: string): any {
-
-    return  DeviceSessionModel
+    return DeviceSessionModel
       .find({userId})
       .select({_id: 0, userId: 0})
       .lean()
-  },
+  }
+
   getDeviceSessionByUserIdAndDeviceId(userId: string, deviceId: string) {
     return DeviceSessionModel
       /// find / findOne
@@ -16,3 +16,5 @@ export const securityQueryRepository = {
       .lean()
   }
 }
+
+export const securityQueryRepository = new SecurityQueryRepository()

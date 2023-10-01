@@ -1,12 +1,8 @@
-import {ca} from "date-fns/locale";
 import {FilterQuery} from "mongoose";
-
 import {BlogModel, PostModel} from "../../db/models";
 import {IBlog, IPost} from "../../interfaces";
 
-export type ProjectionType = {}
-
-export const blogsRepository = {
+class BlogsRepository {
   /// typization ??
   async getAllBlogs(filterOptions: FilterQuery<IBlog>, projection: any, findOptions: any) {
     const {sort, skip, limit} = findOptions
@@ -18,7 +14,7 @@ export const blogsRepository = {
       .skip(skip)
       .limit(limit)
       .lean()
-  },
+  }
 
   /// send blogId and -> .find({blogId}) or send and filteroptions = {blogId}
   async getBlogPostsById(blogId: string, projection: any, findOptions: any): Promise<any> { /// typization
@@ -31,7 +27,7 @@ export const blogsRepository = {
       .skip(skip)
       .limit(limit)
       .lean()
-  },
+  }
 
   async createBlog(newBlog: IBlog): Promise<IBlog | void> { /// is void type ok?
     try {
@@ -49,7 +45,7 @@ export const blogsRepository = {
     } catch (e) {
       console.log(`createBlog error: ${e}`)
     }
-  },
+  }
 
   async createBlogPost(newBlogPost: IPost): Promise<IPost | void> {
     try {
@@ -68,7 +64,7 @@ export const blogsRepository = {
     } catch (e) {
       console.log(`createBlogPost error: ${e}`)
     }
-  },
+  }
 
 
   async updateBlogById(id: string, name: string, description: string, websiteUrl: string): Promise<boolean | void> {
@@ -88,7 +84,8 @@ export const blogsRepository = {
     } catch (e) {
       console.log(`updateBlogById error: ${e}`)
     }
-  },
+  }
+
   async deleteBlogById(id: string): Promise<boolean | void> {
     try {
       const response = await BlogModel.deleteOne({id})
@@ -98,3 +95,5 @@ export const blogsRepository = {
     }
   }
 }
+
+export const blogsRepository = new BlogsRepository()

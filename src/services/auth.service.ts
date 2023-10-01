@@ -6,7 +6,7 @@ import {usersRepository} from "../repositories/users";
 import {usersQueryRepository} from "../repositories/users/query";
 import {v4 as uuidv4} from "uuid";
 
-export const authService = {
+class AuthService {
   async confirmEmail(code: string): Promise<boolean> {
     const user = await usersQueryRepository.findUserByConfirmationCode(code)
 
@@ -15,7 +15,7 @@ export const authService = {
     }
 
     return await usersRepository.updateConfirmation(user.id)
-  },
+  }
   async resendRegistrationConfirmEmail(email: string) {
     try {
       const user = await usersQueryRepository.findUserByEmail(email)
@@ -36,7 +36,7 @@ export const authService = {
       console.log('emailAdapter.sendEmailConfirmationMessage error', e)
       return false
     }
-  },
+  }
   async checkCredentials(loginOrEmail: string, password: string) {
     const user: IUserDb | null = await usersQueryRepository.findUserByLoginOrEmail(loginOrEmail)
 
@@ -47,11 +47,13 @@ export const authService = {
     return passwordHash === user.accountData.passwordHash
       ? user.id
       : false
-  },
+  }
   async recoveryUserPassword(email: string) {
 
-  },
+  }
   async _generateHash(password: string, passwordSalt: string) {
     return await bcrypt.hash(password, passwordSalt)
   }
 }
+
+export const authService = new AuthService()

@@ -8,7 +8,7 @@ import {EmailConfirmationType} from "../interfaces";
 import {usersRepository} from "../repositories/users";
 import {usersQueryRepository} from "../repositories/users/query";
 
-export const usersService = {
+class UsersService  {
   async getAllUsers(
     sortBy: string = 'createdAt',
     sortDirection: SortDirection = 'desc',
@@ -69,7 +69,7 @@ export const usersService = {
       totalCount,
       items: users
     }
-  },
+  }
   async createUserBySuperAdmin(login: string, password: string, email: string) {
     const emailConfirmation: EmailConfirmationType = {
       confirmationCode: null,
@@ -83,7 +83,7 @@ export const usersService = {
       email: user.accountData.email,
       createdAt: user.accountData.createdAt
     }
-  },
+  }
 
   async createUserByRegistration(login: string, password: string, email: string) {
     const emailConfirmation: EmailConfirmationType = {
@@ -92,7 +92,7 @@ export const usersService = {
       isConfirmed: false
     }
     return this._createUser(login, password, email, emailConfirmation)
-  },
+  }
 
   async updatePasswordRecoveryCode(email: string, recoveryCode: string) {
     const expirationDate = add(new Date(), {hours: 1})
@@ -104,11 +104,11 @@ export const usersService = {
     } else {
       return false
     }
-  },
+  }
 
   async deleteUserById(id: string) {
     return usersRepository.deleteUserById(id)
-  },
+  }
   // async checkCredentials(loginOrEmail: string, password: string) {
   //   const user: any = await usersQueryRepository.findUserByLoginOrEmail(loginOrEmail)
   //
@@ -129,7 +129,7 @@ export const usersService = {
   // },
   async _generateHash(password: string, passwordSalt: string) {
     return await bcrypt.hash(password, passwordSalt)
-  },
+  }
   async _createUser(login: string, password: string, email: string, emailConfirmation: EmailConfirmationType) {
     try {
       const passwordSalt = await bcrypt.genSalt(10)
@@ -167,5 +167,7 @@ export const usersService = {
       console.log(e)
       return false
     }
-  },
+  }
 }
+
+export const usersService = new UsersService()
