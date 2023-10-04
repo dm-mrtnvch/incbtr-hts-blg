@@ -1,7 +1,7 @@
 import {FindOptions, SortDirection} from "mongodb";
 import {v4 as uuidv4} from "uuid";
 import {IBlog, IPost} from "../interfaces";
-import {blogsRepository, ProjectionType,} from "../repositories/blogs";
+import {blogsRepository} from "../repositories/blogs";
 import {blogsQueryRepository} from "../repositories/blogs/query";
 import {postsQueryRepository} from "../repositories/posts/query";
 
@@ -19,7 +19,7 @@ class BlogsService  {
       ...(searchNameTerm && {name: new RegExp(searchNameTerm, 'i')}),
     }
 
-    const projection: ProjectionType = {
+    const projection: any = {
       _id: 0,
       __v: 0
     }
@@ -58,7 +58,7 @@ class BlogsService  {
       limit: pageSize
     }
 
-    const projection: ProjectionType = {
+    const projection: any = {
       _id: 0,
       __v: 0
     }

@@ -6,13 +6,13 @@ import {body} from "express-validator";
 import {v4 as uuidv4} from "uuid";
 import {emailAdapter} from "../adapters/emailAdapter";
 import {jwtService} from "../application/jwt/jwt.service";
-
 import {DeviceSessionModel, UserModel} from "../db/models";
-import {emailPattern, errorsValidation, passwordPattern} from "../helpers/utils";
+import {emailPattern, passwordPattern} from "../helpers/utils";
 import {RequestWithBody} from "../interfaces";
 import {
   AccessTokenAuthMiddleware,
-  RefreshTokenAuthMiddleware, RequestErrorsValidationMiddleware,
+  RefreshTokenAuthMiddleware,
+  RequestErrorsValidationMiddleware,
   RequestsLimitMiddleware
 } from "../middlewares/middlewares";
 import {usersRepository} from "../repositories/users";
@@ -23,25 +23,11 @@ import {usersService} from "../services/users.service";
 
 export const authRouter = Router()
 
-authRouter.post('/login',
-  RequestsLimitMiddleware,
-  body('loginOrEmail').notEmpty().trim(),
-  body('password').notEmpty().trim(),
-  // checkSchema({
-  //   loginOrEmail: { notEmpty: true, trim: true},
-  //   password: { notEmpty: true, trim: true},
-  // }),
-  async (req: RequestWithBody<{ loginOrEmail: string, password: string }>, res: Response) => {
+class AuthController {
+  async login(req: RequestWithBody<{ loginOrEmail: string, password: string }>, res: Response) {
     const {loginOrEmail, password} = req.body
 
-    const errors = errorsValidation(req, res)
-    if (errors?.errorsMessages?.length) {
-      res.status(400).send(errors)
-      return
-    }
-
     const userId = await authService.checkCredentials(loginOrEmail, password)
-
     if (userId) {
 
       //TODO; remove uuid library
@@ -67,12 +53,9 @@ authRouter.post('/login',
     } else {
       res.sendStatus(401)
     }
-  })
+  }
 
-authRouter.post('/logout',
-  RequestsLimitMiddleware,
-  RefreshTokenAuthMiddleware,
-  async (req: Request, res: Response) => {
+  async logout(req: Request, res: Response) {
     // await jwtService.addRefreshTokenToBlacklist(req.cookies.refreshToken)
     const {userId, deviceId, iat} = req.jwtPayload
     const device = await DeviceSessionModel.findOne({deviceId, userId})
@@ -81,13 +64,9 @@ authRouter.post('/logout',
 
     await securityService.deleteSessionByUserIdAndDeviceId(userId, deviceId)
     return res.clearCookie('refreshToken').status(204).send()
-  })
+  }
 
-authRouter.get('/me',
-  RequestsLimitMiddleware,
-  /// is refresh requires here?
-  AccessTokenAuthMiddleware,
-  async (req: Request, res: Response) => {
+  async me(req: Request, res: Response) {
     const user = await usersQueryRepository.getUserById(req.userId)
 
     res.send({
@@ -96,7 +75,125 @@ authRouter.get('/me',
       userId: user.id
     })
 
-  })
+  }
+
+  async registration(req: RequestWithBody<{ login: string, password: string, email: string }>, res: Response) {
+    const {login, email, password} = req.body
+    const user = await usersService.createUserByRegistration(login, password, email)
+
+    if (user) {
+      res.sendStatus(204)
+    } else {
+      res.sendStatus(400)
+    }
+  }
+
+  async registrationConfirmation(req: RequestWithBody<{ code: string }>, res: Response) {
+    const {code} = req.body
+    const isConfirmed = await authService.confirmEmail(code)
+
+    if (isConfirmed) {
+      res.sendStatus(204)
+    } else {
+      res.sendStatus(400)
+    }
+  }
+
+  async registrationEmailResending(req: RequestWithBody<{ email: string }>, res: Response) {
+    const {email} = req.body
+    const resendEmailResult: any = await authService.resendRegistrationConfirmEmail(email)
+
+    if (resendEmailResult.messageId) {
+      res.sendStatus(204)
+    } else {
+      res.sendStatus(400)
+    }
+  }
+
+  async passwordRecovery(req: RequestWithBody<{ email: string }>, res: Response) {
+    const {email} = req.body
+    const user = await usersQueryRepository.findUserByEmail(email)
+
+    if (!user) {
+      res.sendStatus(204)
+      return
+    }
+
+    const passwordRecoveryCode = uuidv4()
+    const expirationDate = add(new Date(), {hours: 1})
+    const result = await emailAdapter.recoverUserPassword(email, passwordRecoveryCode)
+
+    if (result.messageId) {
+      await usersRepository.updateUserRecoveryPasswordCode(user.id, passwordRecoveryCode, expirationDate)
+    }
+    res.sendStatus(204)
+  }
+
+  async newPassword(req: RequestWithBody<{ newPassword: string, recoveryCode: string }>, res: Response) {
+    const {newPassword, recoveryCode} = req.body
+    const user = await usersQueryRepository.findUserByPasswordRecoveryCode(recoveryCode)
+    const passwordSalt = await bcrypt.genSalt(10)
+    const passwordHash = await authService._generateHash(newPassword, passwordSalt)
+
+    await UserModel
+      .updateOne({id: user?.id}, {
+        $set: {
+          'accountData.passwordSalt': passwordSalt,
+          'accountData.passwordHash': passwordHash
+        }
+      })
+
+    res.sendStatus(204)
+  }
+
+  async refreshToken(req: Request, res: Response) {
+    const {userId, deviceId, iat} = req.jwtPayload
+    const device = await DeviceSessionModel.findOne({deviceId, userId})
+    if (!device) return res.sendStatus(401)
+    if (device.lastActiveDate !== new Date(iat * 1000).toISOString()) return res.sendStatus(401)
+
+    const newAccessToken = await jwtService.createJwt(userId)
+    const newRefreshToken = await jwtService.createRefreshToken(userId, deviceId)
+
+    if (newAccessToken && newRefreshToken) {
+      // await jwtService.addRefreshTokenToBlacklist(req.cookies.refreshToken)
+      const lastActiveDate = jwtService.getLastActiveDateFromToken(newRefreshToken)
+      await securityService.updateDeviceSessionLastActiveDate(userId, deviceId, lastActiveDate)
+
+      res.cookie('refreshToken', newRefreshToken, {httpOnly: true, secure: true})
+      res.send(newAccessToken)
+      return
+    } else {
+      return res.sendStatus(401)
+    }
+  }
+}
+
+const authController = new AuthController()
+
+authRouter.post('/login',
+  RequestsLimitMiddleware,
+  body('loginOrEmail').notEmpty().trim(),
+  body('password').notEmpty().trim(),
+  // checkSchema({
+  //   loginOrEmail: { notEmpty: true, trim: true},
+  //   password: { notEmpty: true, trim: true},
+  // }),
+  authController.login
+)
+
+authRouter.post('/logout',
+  RequestsLimitMiddleware,
+  RefreshTokenAuthMiddleware,
+  authController.logout
+)
+
+authRouter.get('/me',
+  RequestsLimitMiddleware,
+  /// is refresh requires here?
+  AccessTokenAuthMiddleware,
+  authController.me
+)
 
 authRouter.post('/registration',
   RequestsLimitMiddleware,
@@ -115,109 +212,44 @@ authRouter.post('/registration',
         throw new Error('email is busy')
       }
     }).withMessage('this email is already exist'),
-  async (req: RequestWithBody<{ login: string, password: string, email: string }>, res: Response) => {
-
-    const errors = errorsValidation(req, res)
-    if (errors?.errorsMessages?.length) {
-      res.status(400).send(errors)
-      return
-    }
-
-    const {login, email, password} = req.body
-
-    const user = await usersService.createUserByRegistration(login, password, email)
-
-    if (user) {
-      res.sendStatus(204)
-    } else {
-      res.sendStatus(400)
-    }
-  })
+  RequestErrorsValidationMiddleware,
+  authController.registration
+)
 
 authRouter.post('/registration-confirmation',
   RequestsLimitMiddleware,
+  RequestErrorsValidationMiddleware,
   body('code').notEmpty().trim().custom(async (code) => {
     const user = await usersQueryRepository.findUserByConfirmationCode(code)
-
     if (user.emailConfirmation.isConfirmed) {
       throw new Error('already confirmed')
     }
   }).withMessage('user is already confirmed'),
-  async (req: RequestWithBody<{ code: string }>, res: Response) => {
-
-    const errors = errorsValidation(req, res)
-    if (errors?.errorsMessages?.length) {
-      res.status(400).send(errors)
-      return
-    }
-
-    const {code} = req.body
-    const isConfirmed = await authService.confirmEmail(code)
-
-    if (isConfirmed) {
-      res.sendStatus(204)
-    } else {
-      res.sendStatus(400)
-    }
-  })
+  authController.registrationConfirmation
+)
 
 authRouter.post('/registration-email-resending',
   RequestsLimitMiddleware,
+  RequestErrorsValidationMiddleware,
   body('email').notEmpty().trim().isEmail().matches(emailPattern)
     .custom(async (email) => {
       const user = await usersQueryRepository.findUserByEmail(email)
       if (!user) {
         throw new Error('no email')
       }
-
       if (user.emailConfirmation.isConfirmed) {
         throw new Error('already confirmed')
       }
-
     }).withMessage('email'),
-  async (req: RequestWithBody<{ email: string }>, res: Response) => {
-
-    const errors = errorsValidation(req, res)
-    if (errors?.errorsMessages?.length) {
-      res.status(400).send(errors)
-      return
-    }
-
-    const {email} = req.body
-    const resendEmailResult: any = await authService.resendRegistrationConfirmEmail(email)
-
-    if (resendEmailResult.messageId) {
-      res.sendStatus(204)
-    } else {
-      res.sendStatus(400)
-    }
-  })
+  authController.registrationEmailResending
+)
 
 authRouter.post('/password-recovery',
   RequestsLimitMiddleware,
   body('email').notEmpty().trim().isEmail().withMessage('incorrect body'),
   RequestErrorsValidationMiddleware,
-  async (req: RequestWithBody<{ email: string }>, res: Response) => {
-    const {email} = req.body
-
-    const user = await usersQueryRepository.findUserByEmail(email)
-    if (!user) {
-      res.sendStatus(204)
-      return
-    }
-
-    console.log('user', user)
-
-    const passwordRecoveryCode = uuidv4()
-    const expirationDate = add(new Date(), {hours: 1})
-    const result = await emailAdapter.recoverUserPassword(email, passwordRecoveryCode)
-
-    if (result.messageId) {
-      await usersRepository.updateUserRecoveryPasswordCode(user.id, passwordRecoveryCode, expirationDate)
-    }
-    /// gcheck
-    res.sendStatus(204)
-  })
+  authController.passwordRecovery
+)
 
 authRouter.post('/new-password',
   RequestsLimitMiddleware,
@@ -231,49 +263,11 @@ authRouter.post('/new-password',
     })
     .withMessage('incorrect recovery code'),
   RequestErrorsValidationMiddleware,
-  async (req: RequestWithBody<{ newPassword: string, recoveryCode: string }>, res: Response) => {
-    const {newPassword, recoveryCode} = req.body
-
-    const user = await usersQueryRepository.findUserByPasswordRecoveryCode(recoveryCode)
-
-    const passwordSalt = await bcrypt.genSalt(10)
-    const passwordHash = await authService._generateHash(newPassword, passwordSalt)
-
-    await UserModel
-      .updateOne({id: user?.id}, {
-        $set: {
-          'accountData.passwordSalt': passwordSalt,
-          'accountData.passwordHash': passwordHash
-        }
-      })
-
-    res.sendStatus(204)
-  })
+  authController.newPassword
+)
 
 authRouter.post('/refresh-token',
   RequestsLimitMiddleware,
-
   RefreshTokenAuthMiddleware,
-  async (req: Request, res: Response) => {
-    const {userId, deviceId, iat} = req.jwtPayload
-    const device = await DeviceSessionModel.findOne({deviceId, userId})
-    if (!device) return res.sendStatus(401)
-    if (device.lastActiveDate !== new Date(iat * 1000).toISOString()) return res.sendStatus(401)
-
-    const newAccessToken = await jwtService.createJwt(userId)
-    const newRefreshToken = await jwtService.createRefreshToken(userId, deviceId)
-
-    if (newAccessToken && newRefreshToken) {
-      // await jwtService.addRefreshTokenToBlacklist(req.cookies.refreshToken)
-
-      const lastActiveDate = jwtService.getLastActiveDateFromToken(newRefreshToken)
-      await securityService.updateDeviceSessionLastActiveDate(userId, deviceId, lastActiveDate)
-
-      res.cookie('refreshToken', newRefreshToken, {httpOnly: true, secure: true})
-      res.send(newAccessToken)
-      return
-
-    } else {
-      return res.sendStatus(401)
-    }
-  })
+  authController.refreshToken
+)

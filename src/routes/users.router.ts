@@ -1,7 +1,7 @@
 import {Response, Router} from "express";
 import {body, query} from "express-validator";
 import {SortDirection} from "mongodb";
-import {errorsValidation, sortDirectionValueOrUndefined, toNumberOrUndefined} from "../helpers/utils";
+import {sortDirectionValueOrUndefined, toNumberOrUndefined} from "../helpers/utils";
 import {RequestWithBody, RequestWithParams, RequestWithQuery} from "../interfaces";
 import {BasicAuthMiddleware, RequestErrorsValidationMiddleware} from "../middlewares/middlewares";
 import {usersService} from "../services/users.service";
@@ -18,12 +18,14 @@ class UsersController {
     searchEmailTerm?: string
   }>, res: Response) {
     const {sortBy, sortDirection, pageNumber, pageSize, searchLoginTerm, searchEmailTerm} = req.query
+
     const users = await usersService.getAllUsers(sortBy, sortDirection, pageNumber, pageSize, searchLoginTerm, searchEmailTerm)
     res.send(users)
   }
 
   async createUser(req: RequestWithBody<{ login: string, password: string, email: string }>, res: Response) {
     const {login, password, email} = req.body
+
     const newUser = await usersService.createUserBySuperAdmin(login, password, email)
     res.status(201).send(newUser)
   }
@@ -56,9 +58,10 @@ usersRouter.post('/',
   body('password').notEmpty().trim().isLength({min: 6, max: 20}),
   body('email').notEmpty().trim().isEmail().withMessage('email should matches ^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$\n pattern'),
   RequestErrorsValidationMiddleware,
-  usersController.createUser)
-
+  usersController.createUser
+)
 
 usersRouter.delete('/:id',
   BasicAuthMiddleware,
-  usersController.deleteUser)
+  usersController.deleteUser
+)
