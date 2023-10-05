@@ -22,9 +22,8 @@ import {
 
 export const blogsRouter = Router()
 
-blogsRouter.get('/',
-  checkSchema(paginationSanitizationSchema),
-  async (req: RequestWithQuery<IPaginationWithSearchRequest>, res: Response) => {
+class BlogsController {
+  async getBlogs(req: RequestWithQuery<IPaginationWithSearchRequest>, res: Response) {
     const {searchNameTerm, pageNumber, pageSize, sortBy, sortDirection} = req.query
     const blogs = await blogsService.getAllBlogs(
       searchNameTerm,
@@ -34,10 +33,9 @@ blogsRouter.get('/',
       sortDirection,
     )
     res.send(blogs)
-  })
+  }
 
-blogsRouter.get('/:id',
-  async (req: RequestWithParams<{ id: string }>, res: Response) => {
+  async getBlog(req: RequestWithParams<{ id: string }>, res: Response) {
     const blog = await blogsQueryRepository.getBlogById(req.params.id)
 
     if (blog) {
@@ -45,11 +43,9 @@ blogsRouter.get('/:id',
     } else {
       res.sendStatus(404)
     }
-  })
+  }
 
-blogsRouter.get('/:blogId/posts',
-  checkSchema(paginationSanitizationSchema),
-  async (req: RequestWithParamsAndQuery<{ blogId: string }, IPaginationRequest>, res: Response) => {
+  async getPost(req: RequestWithParamsAndQuery<{ blogId: string }, IPaginationRequest>, res: Response) {
     const {blogId} = req.params
     const {pageNumber, pageSize, sortBy, sortDirection} = req.query
     const isBlogExist = await blogsQueryRepository.getBlogById(blogId)
@@ -67,24 +63,16 @@ blogsRouter.get('/:blogId/posts',
       sortDirection,
     )
     res.send(blogPosts)
-  })
+  }
 
-blogsRouter.post('/',
-  BasicAuthMiddleware,
-  checkSchema(blogCreateUpdateValidationSchema),
-  RequestErrorsValidationMiddleware,
-  async (req: RequestWithBody<IBlogRequest>, res: Response) => {
+  async createBlog(req: RequestWithBody<IBlogRequest>, res: Response) {
     const {name, description, websiteUrl} = req.body
     const newBlog = await blogsService.createBlog(name, description, websiteUrl)
 
     res.status(201).send(newBlog)
-  })
+  }
 
-blogsRouter.post('/:blogId/posts',
-  BasicAuthMiddleware,
-  checkSchema(postValidationSchema),
-  RequestErrorsValidationMiddleware,
-  async (req: RequestWithParamsAndBody<{ blogId: string }, IPostRequest>, res: Response) => {
+  async createPost(req: RequestWithParamsAndBody<{ blogId: string }, IPostRequest>, res: Response) {
     const {blogId} = req.params
     const {title, shortDescription, content} = req.body
     const isBlogExist = await blogsQueryRepository.getBlogById(blogId)
@@ -96,13 +84,9 @@ blogsRouter.post('/:blogId/posts',
 
     const newBlogPost = await blogsService.createBlogPost(title, shortDescription, content, blogId)
     res.status(201).send(newBlogPost)
-  })
+  }
 
-blogsRouter.put('/:id',
-  BasicAuthMiddleware,
-  checkSchema(blogCreateUpdateValidationSchema),
-  RequestErrorsValidationMiddleware,
-  async (req: RequestWithParamsAndBody<{ id: string }, IBlogRequest>, res: Response) => {
+  async updateBlog(req: RequestWithParamsAndBody<{ id: string }, IBlogRequest>, res: Response) {
     const {id} = req.params
     const {name, description, websiteUrl} = req.body
     const isBlogUpdated = await blogsService.updateBlogById(id, name, description, websiteUrl)
@@ -112,11 +96,9 @@ blogsRouter.put('/:id',
     } else {
       res.sendStatus(404)
     }
-  })
+  }
 
-blogsRouter.delete('/:id',
-  BasicAuthMiddleware,
-  async (req: RequestWithParams<{ id: string }>, res: Response) => {
+  async deleteBlog(req: RequestWithParams<{ id: string }>, res: Response) {
     const {id} = req.params
     const isBlogDeleted = await blogsService.deleteBlogById(id)
 
@@ -125,4 +107,47 @@ blogsRouter.delete('/:id',
     } else {
       res.sendStatus(404)
     }
-  })
+  }
+}
+
+const blogsController = new BlogsController()
+
+blogsRouter.get('/',
+  checkSchema(paginationSanitizationSchema),
+  blogsController.getBlogs
+)
+
+blogsRouter.get('/:id',
+  blogsController.getBlog
+)
+
+blogsRouter.get('/:blogId/posts',
+  checkSchema(paginationSanitizationSchema),
+  blogsController.getPost
+)
+
+blogsRouter.post('/',
+  BasicAuthMiddleware,
+  checkSchema(blogCreateUpdateValidationSchema),
+  RequestErrorsValidationMiddleware,
+  blogsController.createBlog
+)
+
+blogsRouter.post('/:blogId/posts',
+  BasicAuthMiddleware,
+  checkSchema(postValidationSchema),
+  RequestErrorsValidationMiddleware,
+  blogsController.createPost
+)
+
+blogsRouter.put('/:id',
+  BasicAuthMiddleware,
+  checkSchema(blogCreateUpdateValidationSchema),
+  RequestErrorsValidationMiddleware,
+  blogsController.updateBlog
+)
+
+blogsRouter.delete('/:id',
+  BasicAuthMiddleware,
+  blogsController.deleteBlog
+)
