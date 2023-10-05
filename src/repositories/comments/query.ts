@@ -3,7 +3,6 @@ import {LIKE_STATUS_ENUM} from "../../interfaces";
 
 class CommentsQueryRepository {
   async getCommentsCount(postId: string) {
-    console.log('postId', postId)
     return CommentModel.countDocuments({postId})
   }
 

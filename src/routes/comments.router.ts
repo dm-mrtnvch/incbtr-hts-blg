@@ -1,8 +1,6 @@
-import {Request, Response, Router} from "express";
+import {Response, Router} from "express";
 import {body} from "express-validator";
-
 import {CommentModel} from "../db/models";
-import {errorsValidation} from "../helpers/utils";
 import {LIKE_STATUS_ENUM, RequestWithParams, RequestWithParamsAndBody} from "../interfaces";
 import {
   AccessTokenAuthMiddleware,
@@ -10,17 +8,13 @@ import {
   RequestErrorsValidationMiddleware
 } from "../middlewares/middlewares";
 import {commentsQueryRepository} from "../repositories/comments/query";
-import {usersRepository} from "../repositories/users";
 import {usersQueryRepository} from "../repositories/users/query";
 import {commentsService} from "../services/comments.service";
 
 export const commentsRouter = Router()
 
-
-commentsRouter.get('/:id',
-  LightAccessTokenAuthMiddleware,
-  async (req: RequestWithParams<{ id: string }>, res: Response) => {
-
+class CommentsController {
+  async getComment(req: RequestWithParams<{ id: string }>, res: Response) {
     const {id} = req.params
     const comment = await commentsQueryRepository.getCommentByIdAndUserIdIfExist(id, req.userId)
 
@@ -30,21 +24,11 @@ commentsRouter.get('/:id',
     } else {
       res.send(comment)
     }
-  })
+  }
 
-commentsRouter.put('/:id',
-  AccessTokenAuthMiddleware,
-  body('content').notEmpty().trim().isLength({min: 20, max: 300}),
-  async (req: RequestWithParamsAndBody<{ id: string }, { content: string }>, res: Response) => {
+  async updateComment(req: RequestWithParamsAndBody<{ id: string }, { content: string }>, res: Response) {
     const {id} = req.params
     const {content} = req.body
-
-    const errors = errorsValidation(req, res)
-    if (errors?.errorsMessages?.length) {
-      res.status(400).send(errors)
-      return
-    }
-
     const comment = await commentsQueryRepository.getCommentById(id)
 
     if (!comment) {
@@ -56,7 +40,6 @@ commentsRouter.put('/:id',
       res.sendStatus(403)
       return
     }
-
     /// will return 404 if we try to update with the same content 2 times
     const isUpdated = await commentsService.updatedCommentById(id, content)
 
@@ -68,18 +51,10 @@ commentsRouter.put('/:id',
       res.sendStatus(404)
       return
     }
+  }
 
-  })
-
-commentsRouter.put('/:id/like-status',
-  AccessTokenAuthMiddleware,
-  body('likeStatus').notEmpty().trim().custom((likeStatus) => {
-    return Object.values(LIKE_STATUS_ENUM).includes(likeStatus)
-  }),
-  RequestErrorsValidationMiddleware,
-  async (req: RequestWithParamsAndBody<{ id: string }, { likeStatus: string }>, res: Response) => {
+  async likeComment(req: RequestWithParamsAndBody<{ id: string }, { likeStatus: string }>, res: Response) {
     const comment = await CommentModel.findOne({id: req.params.id}).lean()
-
     const user = await usersQueryRepository.getUserById(req.userId)
 
     if (!comment) {
@@ -91,9 +66,6 @@ commentsRouter.put('/:id/like-status',
       id: req.params.id,
       'likes.userId': req.userId
     }).lean()
-
-    console.log('isMyReactionExist', isMyReactionExist)
-
 
     if (!isMyReactionExist && req.body.likeStatus !== LIKE_STATUS_ENUM.NONE) {
       await CommentModel.findOneAndUpdate({id: req.params.id}, {
@@ -109,12 +81,10 @@ commentsRouter.put('/:id/like-status',
       return
     }
 
-
     if (!isMyReactionExist && req.body.likeStatus === LIKE_STATUS_ENUM.NONE) {
       res.sendStatus(204)
       return
     }
-
 
     if (isMyReactionExist && (isMyReactionExist?.likes?.find(like => like.userId === req.userId)?.likeStatus === LIKE_STATUS_ENUM.NONE)) {
       await CommentModel.findOneAndUpdate({id: req.params.id}, {
@@ -128,10 +98,6 @@ commentsRouter.put('/:id/like-status',
     }
 
     if (isMyReactionExist) {
-      // console.log('isMyReactionExist', isMyReactionExist)
-      // const test = await CommentModel.findOne({id: req.params.id, 'likes.userId': req.userId}).lean()
-      // console.log('test', test)
-
       await CommentModel.findOneAndUpdate({id: req.params.id, 'likes.userId': req.userId}, {
         $set: {
           'likes.$.likeStatus': req.body.likeStatus,
@@ -140,15 +106,10 @@ commentsRouter.put('/:id/like-status',
       res.sendStatus(204)
       return
     }
+  }
 
-
-  })
-
-commentsRouter.delete('/:commentId',
-  AccessTokenAuthMiddleware,
-  async (req: RequestWithParams<{ commentId: string }>, res: Response) => {
+  async deleteComment(req: RequestWithParams<{ commentId: string }>, res: Response) {
     const {commentId} = req.params
-
     /// isOwner
     const comment = await commentsQueryRepository.getCommentById(commentId)
 
@@ -170,9 +131,33 @@ commentsRouter.delete('/:commentId',
     } else {
       res.sendStatus(404)
     }
-  })
+  }
+}
 
-commentsRouter.delete('', async (req: Request, res: Response) => {
-  await CommentModel.deleteMany({})
-  res.sendStatus(204)
-})
+const commentsController = new CommentsController()
+
+commentsRouter.get('/:id',
+  LightAccessTokenAuthMiddleware,
+  commentsController.getComment
+)
+
+commentsRouter.put('/:id',
+  AccessTokenAuthMiddleware,
+  body('content').notEmpty().trim().isLength({min: 20, max: 300}),
+  RequestErrorsValidationMiddleware,
+  commentsController.updateComment
+)
+
+commentsRouter.put('/:id/like-status',
+  AccessTokenAuthMiddleware,
+  body('likeStatus').notEmpty().trim().custom((likeStatus) => {
+    return Object.values(LIKE_STATUS_ENUM).includes(likeStatus)
+  }),
+  RequestErrorsValidationMiddleware,
+  commentsController.likeComment
+)
+
+commentsRouter.delete('/:commentId',
+  AccessTokenAuthMiddleware,
+  commentsController.deleteComment
+)
