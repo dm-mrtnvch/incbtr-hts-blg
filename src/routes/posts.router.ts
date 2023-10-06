@@ -1,4 +1,4 @@
-import {Request, Response, Router} from "express";
+import {Response, Router} from "express";
 import {body, param, query} from "express-validator";
 import {SortDirection, UUID} from "mongodb";
 import {errorsValidation, sortDirectionValueOrUndefined, toNumberOrUndefined} from "../helpers/utils";
@@ -10,12 +10,12 @@ import {
   RequestWithQuery
 } from "../interfaces";
 import {
-  BasicAuthMiddleware,
   AccessTokenAuthMiddleware,
-  RequestErrorsValidationMiddleware, LightAccessTokenAuthMiddleware
+  BasicAuthMiddleware,
+  LightAccessTokenAuthMiddleware,
+  RequestErrorsValidationMiddleware
 } from "../middlewares/middlewares";
 import {blogsQueryRepository} from "../repositories/blogs/query";
-import {commentsQueryRepository} from "../repositories/comments/query";
 import {postsQueryRepository} from "../repositories/posts/query";
 import {usersQueryRepository} from "../repositories/users/query";
 import {commentsService} from "../services/comments.service";
