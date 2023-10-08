@@ -4,11 +4,18 @@ import {SortDirection} from "mongodb";
 import {sortDirectionValueOrUndefined, toNumberOrUndefined} from "../helpers/utils";
 import {RequestWithBody, RequestWithParams, RequestWithQuery} from "../interfaces";
 import {BasicAuthMiddleware, RequestErrorsValidationMiddleware} from "../middlewares/middlewares";
-import {usersService} from "../services/users.service";
+import {usersQueryRepository} from "../repositories/users/query";
+import {UsersService, usersService} from "../services/users.service";
 
 export const usersRouter = Router()
 
 class UsersController {
+  usersService: UsersService
+
+  constructor() {
+    this.usersService = new UsersService()
+  }
+
   async getUsers(req: RequestWithQuery<{
     sortBy?: string,
     sortDirection?: SortDirection,
@@ -19,21 +26,21 @@ class UsersController {
   }>, res: Response) {
     const {sortBy, sortDirection, pageNumber, pageSize, searchLoginTerm, searchEmailTerm} = req.query
 
-    const users = await usersService.getAllUsers(sortBy, sortDirection, pageNumber, pageSize, searchLoginTerm, searchEmailTerm)
+    const users = await usersQueryRepository.getAllUsers(sortBy, sortDirection, pageNumber, pageSize, searchLoginTerm, searchEmailTerm)
     res.send(users)
   }
 
   async createUser(req: RequestWithBody<{ login: string, password: string, email: string }>, res: Response) {
     const {login, password, email} = req.body
 
-    const newUser = await usersService.createUserBySuperAdmin(login, password, email)
+    const newUser = await this.usersService.createUserBySuperAdmin(login, password, email)
     res.status(201).send(newUser)
   }
 
   async deleteUser(req: RequestWithParams<{ id: string }>, res: Response) {
     const {id} = req.params
 
-    const isUserDeleted = await usersService.deleteUserById(id)
+    const isUserDeleted = await this.usersService.deleteUserById(id)
     if (isUserDeleted) {
       res.sendStatus(204)
     } else {
@@ -58,10 +65,10 @@ usersRouter.post('/',
   body('password').notEmpty().trim().isLength({min: 6, max: 20}),
   body('email').notEmpty().trim().isEmail().withMessage('email should matches ^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$\n pattern'),
   RequestErrorsValidationMiddleware,
-  usersController.createUser
+  usersController.createUser.bind(usersController)
 )
 
 usersRouter.delete('/:id',
   BasicAuthMiddleware,
-  usersController.deleteUser
+  usersController.deleteUser.bind(usersController)
 )

@@ -2,7 +2,7 @@ import {v4 as uuidv4} from "uuid";
 
 import {UserModel} from "../../db/models";
 
-class UsersRepository {
+export class UsersRepository {
   /// tipization
   async createUser(newUser: any): Promise<any> {
     const createdUser = await UserModel.create(newUser) as any

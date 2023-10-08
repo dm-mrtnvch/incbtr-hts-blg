@@ -1,34 +1,73 @@
 import {FilterQuery} from "mongoose";
 import {UserModel} from "../../db/models";
 import {IUserDb} from "../../interfaces";
+import {SortDirection} from "mongodb";
 
-class UsersQueryRepository {
+export class UsersQueryRepository {
   /// typization
-  getAllUsers(filterOptions: any, projection: any, findOptions: any) {
-    const {sort, skip, limit} = findOptions
+  async getAllUsers(
+    // filterOptions: any, projection: any, findOptions: any
+    sortBy: string = 'createdAt',
+    sortDirection: SortDirection = 'desc',
+    pageNumber: number = 1,
+    pageSize: number = 10,
+    searchLoginTerm: string | null = null,
+    searchEmailTerm: string | null = null
+  ) {
+
 
     /// refactor
     const conditions = []
 
-    if (filterOptions.searchLoginTerm) {
-      conditions.push({login: {$regex: filterOptions.searchLoginTerm, $options: 'i'}})
+    if (searchLoginTerm) {
+      conditions.push({login: {$regex: searchLoginTerm, $options: 'i'}})
     }
 
-    if (filterOptions.searchEmailTerm) {
-      conditions.push({email: {$regex: filterOptions.searchEmailTerm, $options: 'i'}})
+    if (searchEmailTerm) {
+      conditions.push({email: {$regex: searchEmailTerm, $options: 'i'}})
     }
 
     const filter = conditions.length
       ? {$or: conditions}
       : {}
 
-    return UserModel
+    // const projection = {
+    //   _id: 0,
+    //   __v: 0,
+    //   accountData: {
+    //     password: 0,
+    //     passwordHash: 0,
+    //     passwordSalt: 0,
+    //   },
+    //
+    // }
+
+    const skipCount = (pageNumber - 1) * pageSize
+    const totalCount = await this.getAllUsersCount(filter)
+    const totalPagesCount = Math.ceil(totalCount / pageSize)
+
+    // return
+    const users = await UserModel
       .find(filter)
-      .select(projection)
-      .sort(sort)
-      .skip(skip)
-      .limit(limit)
+      // .select(projection)
+      .sort({[sortBy]: sortDirection})
+      .skip(skipCount)
+      .limit(pageSize)
       .lean()
+
+      return {
+        pagesCount: totalPagesCount,
+        page: pageNumber,
+        pageSize,
+        totalCount,
+        items: users.map(u =>({
+          id: u.id,
+          login: u.accountData.login,
+          email: u.accountData.email,
+          createdAt: u.accountData.createdAt
+        }))
+      }
+
   }
 
   getAllUsersCount(filterOptions: FilterQuery<IUserDb>) {
