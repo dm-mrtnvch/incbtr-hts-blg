@@ -2,7 +2,7 @@ import {FilterQuery} from "mongoose";
 import {BlogModel, PostModel} from "../../db/models";
 import {IBlog, IPost} from "../../interfaces";
 
-class BlogsRepository {
+export class BlogsRepository {
   /// typization ??
   async getAllBlogs(filterOptions: FilterQuery<IBlog>, projection: any, findOptions: any) {
     const {sort, skip, limit} = findOptions

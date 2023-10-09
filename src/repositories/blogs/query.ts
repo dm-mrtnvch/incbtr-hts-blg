@@ -1,7 +1,7 @@
 import {BlogModel} from "../../db/models";
 import {IBlog} from "../../interfaces";
 
-class BlogsQueryRepository {
+export class BlogsQueryRepository {
   async getAllBlogsCount(filterOptions: any): Promise<number> {
     return BlogModel.countDocuments(filterOptions)
   }
