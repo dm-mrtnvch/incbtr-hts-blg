@@ -1,6 +1,6 @@
 import {securityRepository} from "../repositories/security";
 
-class SecurityService {
+export class SecurityService {
   async createDeviceSession(newSession: any) {
     return securityRepository.createDeviceSession(newSession)
   }

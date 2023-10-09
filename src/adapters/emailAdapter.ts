@@ -8,7 +8,7 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-export const emailAdapter = {
+export class EmailAdapter {
   async sendEmailConfirmationMessage(email: string, confirmationCode: string): Promise<SentMessageInfo> {
     const info = await transporter.sendMail({
       from: '"Incbtr ✉️" <idmvshn@gmail.com>', // sender address
@@ -23,8 +23,7 @@ export const emailAdapter = {
     })
 
     return info
-  },
-
+  }
 
   async recoverUserPassword(email: string, confirmationCode: string): Promise<SentMessageInfo> {
     const info = await transporter.sendMail({
@@ -40,5 +39,7 @@ export const emailAdapter = {
     })
 
     return info
-  },
+  }
 }
+
+export const emailAdapter = new EmailAdapter()

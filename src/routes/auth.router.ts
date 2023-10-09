@@ -4,8 +4,8 @@ import add from "date-fns/add";
 import {Request, Response, Router} from "express";
 import {body} from "express-validator";
 import {v4 as uuidv4} from "uuid";
-import {emailAdapter} from "../adapters/emailAdapter";
-import {jwtService} from "../application/jwt/jwt.service";
+import {EmailAdapter} from "../adapters/emailAdapter";
+import {JwtService} from "../application/jwt/jwt.service";
 import {DeviceSessionModel, UserModel} from "../db/models";
 import {emailPattern, passwordPattern} from "../helpers/utils";
 import {RequestWithBody} from "../interfaces";
@@ -15,35 +15,53 @@ import {
   RequestErrorsValidationMiddleware,
   RequestsLimitMiddleware
 } from "../middlewares/middlewares";
-import {usersRepository} from "../repositories/users";
-import {usersQueryRepository} from "../repositories/users/query";
-import {authService} from "../services/auth.service";
-import {securityService} from "../services/security.service";
-import {usersService} from "../services/users.service";
+import {UsersRepository} from "../repositories/users";
+import {UsersQueryRepository, usersQueryRepository} from "../repositories/users/query";
+import {AuthService, authService} from "../services/auth.service";
+import {SecurityService} from "../services/security.service";
+import {UsersService} from "../services/users.service";
 
 export const authRouter = Router()
 
 class AuthController {
+  authService: AuthService
+  jwtService: JwtService
+  securityService: SecurityService
+  usersRepository: UsersRepository
+  usersQueryRepository: UsersQueryRepository
+  usersService: UsersService
+  emailAdapter: EmailAdapter
+
+  constructor() {
+    this.authService = new AuthService()
+    this.jwtService = new JwtService()
+    this.securityService = new SecurityService()
+    this.usersRepository = new UsersRepository()
+    this.usersQueryRepository = new UsersQueryRepository()
+    this.usersService = new UsersService()
+    this.emailAdapter = new EmailAdapter()
+  }
+
   async login(req: RequestWithBody<{ loginOrEmail: string, password: string }>, res: Response) {
     const {loginOrEmail, password} = req.body
 
-    const userId = await authService.checkCredentials(loginOrEmail, password)
+    const userId = await this.authService.checkCredentials(loginOrEmail, password)
     if (userId) {
 
       //TODO; remove uuid library
       const deviceId = randomUUID()
-      const accessToken = await jwtService.createJwt(userId)
-      const refreshToken = await jwtService.createRefreshToken(userId, deviceId)
+      const accessToken = await this.jwtService.createJwt(userId)
+      const refreshToken = await this.jwtService.createRefreshToken(userId, deviceId)
 
       const newSession = {
         ip: req.ip,
         title: req.headers['user-agent'] || 'asdf',
         deviceId,
         userId,
-        lastActiveDate: jwtService.getLastActiveDateFromToken(refreshToken)
+        lastActiveDate: this.jwtService.getLastActiveDateFromToken(refreshToken)
       }
 
-      await securityService.createDeviceSession(newSession)
+      await this.securityService.createDeviceSession(newSession)
       //lastActiveDate === refresh token issuance time
 
       res
@@ -62,12 +80,12 @@ class AuthController {
     if (!device) return res.sendStatus(401)
     if (device.lastActiveDate !== new Date(iat * 1000).toISOString()) return res.sendStatus(401)
 
-    await securityService.deleteSessionByUserIdAndDeviceId(userId, deviceId)
+    await this.securityService.deleteSessionByUserIdAndDeviceId(userId, deviceId)
     return res.clearCookie('refreshToken').status(204).send()
   }
 
   async me(req: Request, res: Response) {
-    const user = await usersQueryRepository.getUserById(req.userId)
+    const user = await this.usersQueryRepository.getUserById(req.userId)
 
     res.send({
       email: user.accountData.email,
@@ -79,7 +97,7 @@ class AuthController {
 
   async registration(req: RequestWithBody<{ login: string, password: string, email: string }>, res: Response) {
     const {login, email, password} = req.body
-    const user = await usersService.createUserByRegistration(login, password, email)
+    const user = await this.usersService.createUserByRegistration(login, password, email)
 
     if (user) {
       res.sendStatus(204)
@@ -90,7 +108,7 @@ class AuthController {
 
   async registrationConfirmation(req: RequestWithBody<{ code: string }>, res: Response) {
     const {code} = req.body
-    const isConfirmed = await authService.confirmEmail(code)
+    const isConfirmed = await this.authService.confirmEmail(code)
 
     if (isConfirmed) {
       res.sendStatus(204)
@@ -101,7 +119,7 @@ class AuthController {
 
   async registrationEmailResending(req: RequestWithBody<{ email: string }>, res: Response) {
     const {email} = req.body
-    const resendEmailResult: any = await authService.resendRegistrationConfirmEmail(email)
+    const resendEmailResult: any = await this.authService.resendRegistrationConfirmEmail(email)
 
     if (resendEmailResult.messageId) {
       res.sendStatus(204)
@@ -112,7 +130,7 @@ class AuthController {
 
   async passwordRecovery(req: RequestWithBody<{ email: string }>, res: Response) {
     const {email} = req.body
-    const user = await usersQueryRepository.findUserByEmail(email)
+    const user = await this.usersQueryRepository.findUserByEmail(email)
 
     if (!user) {
       res.sendStatus(204)
@@ -121,17 +139,17 @@ class AuthController {
 
     const passwordRecoveryCode = uuidv4()
     const expirationDate = add(new Date(), {hours: 1})
-    const result = await emailAdapter.recoverUserPassword(email, passwordRecoveryCode)
+    const result = await this.emailAdapter.recoverUserPassword(email, passwordRecoveryCode)
 
     if (result.messageId) {
-      await usersRepository.updateUserRecoveryPasswordCode(user.id, passwordRecoveryCode, expirationDate)
+      await this.usersRepository.updateUserRecoveryPasswordCode(user.id, passwordRecoveryCode, expirationDate)
     }
     res.sendStatus(204)
   }
 
   async newPassword(req: RequestWithBody<{ newPassword: string, recoveryCode: string }>, res: Response) {
     const {newPassword, recoveryCode} = req.body
-    const user = await usersQueryRepository.findUserByPasswordRecoveryCode(recoveryCode)
+    const user = await this.usersQueryRepository.findUserByPasswordRecoveryCode(recoveryCode)
     const passwordSalt = await bcrypt.genSalt(10)
     const passwordHash = await authService._generateHash(newPassword, passwordSalt)
 
@@ -152,13 +170,13 @@ class AuthController {
     if (!device) return res.sendStatus(401)
     if (device.lastActiveDate !== new Date(iat * 1000).toISOString()) return res.sendStatus(401)
 
-    const newAccessToken = await jwtService.createJwt(userId)
-    const newRefreshToken = await jwtService.createRefreshToken(userId, deviceId)
+    const newAccessToken = await this.jwtService.createJwt(userId)
+    const newRefreshToken = await this.jwtService.createRefreshToken(userId, deviceId)
 
     if (newAccessToken && newRefreshToken) {
       // await jwtService.addRefreshTokenToBlacklist(req.cookies.refreshToken)
-      const lastActiveDate = jwtService.getLastActiveDateFromToken(newRefreshToken)
-      await securityService.updateDeviceSessionLastActiveDate(userId, deviceId, lastActiveDate)
+      const lastActiveDate = this.jwtService.getLastActiveDateFromToken(newRefreshToken)
+      await this.securityService.updateDeviceSessionLastActiveDate(userId, deviceId, lastActiveDate)
 
       res.cookie('refreshToken', newRefreshToken, {httpOnly: true, secure: true})
       res.send(newAccessToken)
@@ -179,20 +197,20 @@ authRouter.post('/login',
   //   loginOrEmail: { notEmpty: true, trim: true},
   //   password: { notEmpty: true, trim: true},
   // }),
-  authController.login
+  authController.login.bind(authController)
 )
 
 authRouter.post('/logout',
   RequestsLimitMiddleware,
   RefreshTokenAuthMiddleware,
-  authController.logout
+  authController.logout.bind(authController)
 )
 
 authRouter.get('/me',
   RequestsLimitMiddleware,
   /// is refresh requires here?
   AccessTokenAuthMiddleware,
-  authController.me
+  authController.me.bind(authController)
 )
 
 authRouter.post('/registration',
@@ -213,7 +231,7 @@ authRouter.post('/registration',
       }
     }).withMessage('this email is already exist'),
   RequestErrorsValidationMiddleware,
-  authController.registration
+  authController.registration.bind(authController)
 )
 
 authRouter.post('/registration-confirmation',
@@ -225,7 +243,7 @@ authRouter.post('/registration-confirmation',
       throw new Error('already confirmed')
     }
   }).withMessage('user is already confirmed'),
-  authController.registrationConfirmation
+  authController.registrationConfirmation.bind(authController)
 )
 
 authRouter.post('/registration-email-resending',
@@ -241,14 +259,14 @@ authRouter.post('/registration-email-resending',
         throw new Error('already confirmed')
       }
     }).withMessage('email'),
-  authController.registrationEmailResending
+  authController.registrationEmailResending.bind(authController)
 )
 
 authRouter.post('/password-recovery',
   RequestsLimitMiddleware,
   body('email').notEmpty().trim().isEmail().withMessage('incorrect body'),
   RequestErrorsValidationMiddleware,
-  authController.passwordRecovery
+  authController.passwordRecovery.bind(authController)
 )
 
 authRouter.post('/new-password',
@@ -263,11 +281,11 @@ authRouter.post('/new-password',
     })
     .withMessage('incorrect recovery code'),
   RequestErrorsValidationMiddleware,
-  authController.newPassword
+  authController.newPassword.bind(authController)
 )
 
 authRouter.post('/refresh-token',
   RequestsLimitMiddleware,
   RefreshTokenAuthMiddleware,
-  authController.refreshToken
+  authController.refreshToken.bind(authController)
 )
