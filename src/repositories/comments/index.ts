@@ -2,7 +2,7 @@ import {UpdateResult} from "mongodb";
 import {CommentModel} from "../../db/models";
 import {LIKE_STATUS_ENUM} from "../../interfaces";
 
-class CommentsRepository {
+export class CommentsRepository {
   async createComment(newComment: any) {
     const createdComment = await CommentModel.create(newComment)
 

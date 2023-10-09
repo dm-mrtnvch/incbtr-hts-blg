@@ -1,7 +1,7 @@
 import {CommentModel} from "../../db/models";
 import {LIKE_STATUS_ENUM} from "../../interfaces";
 
-class CommentsQueryRepository {
+export class CommentsQueryRepository {
   async getCommentsCount(postId: string) {
     return CommentModel.countDocuments({postId})
   }

@@ -7,16 +7,26 @@ import {
   LightAccessTokenAuthMiddleware,
   RequestErrorsValidationMiddleware
 } from "../middlewares/middlewares";
-import {commentsQueryRepository} from "../repositories/comments/query";
-import {usersQueryRepository} from "../repositories/users/query";
-import {commentsService} from "../services/comments.service";
+import {CommentsQueryRepository} from "../repositories/comments/query";
+import {UsersQueryRepository} from "../repositories/users/query";
+import {CommentsService} from "../services/comments.service";
 
 export const commentsRouter = Router()
 
 class CommentsController {
+  commentsQueryRepository: CommentsQueryRepository
+  commentsService: CommentsService
+  usersQueryRepository: UsersQueryRepository
+
+  constructor() {
+    this.commentsQueryRepository = new CommentsQueryRepository()
+    this.commentsService = new CommentsService()
+    this.usersQueryRepository = new UsersQueryRepository()
+  }
+
   async getComment(req: RequestWithParams<{ id: string }>, res: Response) {
     const {id} = req.params
-    const comment = await commentsQueryRepository.getCommentByIdAndUserIdIfExist(id, req.userId)
+    const comment = await this.commentsQueryRepository.getCommentByIdAndUserIdIfExist(id, req.userId)
 
     if (!comment) {
       res.sendStatus(404)
@@ -29,7 +39,7 @@ class CommentsController {
   async updateComment(req: RequestWithParamsAndBody<{ id: string }, { content: string }>, res: Response) {
     const {id} = req.params
     const {content} = req.body
-    const comment = await commentsQueryRepository.getCommentById(id)
+    const comment = await this.commentsQueryRepository.getCommentById(id)
 
     if (!comment) {
       res.sendStatus(404)
@@ -41,7 +51,7 @@ class CommentsController {
       return
     }
     /// will return 404 if we try to update with the same content 2 times
-    const isUpdated = await commentsService.updatedCommentById(id, content)
+    const isUpdated = await this.commentsService.updatedCommentById(id, content)
 
     if (isUpdated) {
       res.sendStatus(204)
@@ -55,7 +65,7 @@ class CommentsController {
 
   async likeComment(req: RequestWithParamsAndBody<{ id: string }, { likeStatus: string }>, res: Response) {
     const comment = await CommentModel.findOne({id: req.params.id}).lean()
-    const user = await usersQueryRepository.getUserById(req.userId)
+    const user = await this.usersQueryRepository.getUserById(req.userId)
 
     if (!comment) {
       res.sendStatus(404)
@@ -111,7 +121,7 @@ class CommentsController {
   async deleteComment(req: RequestWithParams<{ commentId: string }>, res: Response) {
     const {commentId} = req.params
     /// isOwner
-    const comment = await commentsQueryRepository.getCommentById(commentId)
+    const comment = await this.commentsQueryRepository.getCommentById(commentId)
 
     if (!comment) {
       res.sendStatus(404)
@@ -124,7 +134,7 @@ class CommentsController {
       return
     }
 
-    const isDeleted: boolean = await commentsService.deleteCommentById(commentId)
+    const isDeleted: boolean = await this.commentsService.deleteCommentById(commentId)
 
     if (isDeleted) {
       res.sendStatus(204)
@@ -138,14 +148,14 @@ const commentsController = new CommentsController()
 
 commentsRouter.get('/:id',
   LightAccessTokenAuthMiddleware,
-  commentsController.getComment
+  commentsController.getComment.bind(commentsController)
 )
 
 commentsRouter.put('/:id',
   AccessTokenAuthMiddleware,
   body('content').notEmpty().trim().isLength({min: 20, max: 300}),
   RequestErrorsValidationMiddleware,
-  commentsController.updateComment
+  commentsController.updateComment.bind(commentsController)
 )
 
 commentsRouter.put('/:id/like-status',
@@ -154,10 +164,10 @@ commentsRouter.put('/:id/like-status',
     return Object.values(LIKE_STATUS_ENUM).includes(likeStatus)
   }),
   RequestErrorsValidationMiddleware,
-  commentsController.likeComment
+  commentsController.likeComment.bind(commentsController)
 )
 
 commentsRouter.delete('/:commentId',
   AccessTokenAuthMiddleware,
-  commentsController.deleteComment
+  commentsController.deleteComment.bind(commentsController)
 )
