@@ -3,12 +3,22 @@ import {v4 as uuidv4} from "uuid";
 
 import {BlogModel, PostModel} from "../db/models";
 import {IPost} from "../interfaces";
-import {blogsQueryRepository} from "../repositories/blogs/query";
-import {postsRepository} from "../repositories/posts";
-import {postsQueryRepository} from "../repositories/posts/query";
+import {BlogsQueryRepository, blogsQueryRepository} from "../repositories/blogs/query";
+import {PostsRepository, postsRepository} from "../repositories/posts";
+import {PostsQueryRepository, postsQueryRepository} from "../repositories/posts/query";
 import {blogsService} from "./blogs.service";
 
-class PostsService {
+export class PostsService {
+  postsRepository: PostsRepository
+  postsQueryRepository: PostsQueryRepository
+  blogsQueryRepository: BlogsQueryRepository
+
+  constructor() {
+    this.postsRepository = new PostsRepository()
+    this.postsQueryRepository = new PostsQueryRepository()
+    this.blogsQueryRepository = new BlogsQueryRepository()
+  }
+
   async getAllPosts(pageNumber: number = 1,
                     pageSize: number = 10,
                     sortBy: string = 'createdAt',
@@ -28,8 +38,8 @@ class PostsService {
     }
 
     /// null or {} ?
-    const posts = await postsRepository.getAllPosts({}, projection, postsFindOptions)
-    const totalCount = await postsQueryRepository.getAllPostsCount({})
+    const posts = await this.postsRepository.getAllPosts({}, projection, postsFindOptions)
+    const totalCount = await this.postsQueryRepository.getAllPostsCount({})
     const totalPagesCount = Math.ceil(totalCount / pageSize)
 
     return {
@@ -40,8 +50,9 @@ class PostsService {
       items: posts
     }
   }
+
   async createPost(title: string, shortDescription: string, content: string, blogId: string) {
-    const blog = await blogsQueryRepository.getBlogById(blogId)
+    const blog = await this.blogsQueryRepository.getBlogById(blogId)
 
     if (blog) {
       const newPost = {
@@ -54,17 +65,19 @@ class PostsService {
         createdAt: new Date().toISOString()
       }
 
-      return await postsRepository.createPost(newPost)
+      return await this.postsRepository.createPost(newPost)
     } else {
       return false
     }
   }
+
   async updatePostById(id: string, title: string, shortDescription: string, content: string, blogId: string): Promise<boolean> {
-    const updateResult = await postsRepository.updatePostById(id, title, shortDescription, content, blogId)
+    const updateResult = await this.postsRepository.updatePostById(id, title, shortDescription, content, blogId)
     return !!updateResult.modifiedCount
   }
+
   async deletePostById(id: string): Promise<Boolean> {
-    const deleteResult = await postsRepository.deletePostById(id)
+    const deleteResult = await this.postsRepository.deletePostById(id)
     return !!deleteResult.deletedCount
   }
 }

@@ -16,14 +16,26 @@ import {
   RequestErrorsValidationMiddleware
 } from "../middlewares/middlewares";
 import {blogsQueryRepository} from "../repositories/blogs/query";
-import {postsQueryRepository} from "../repositories/posts/query";
-import {usersQueryRepository} from "../repositories/users/query";
-import {commentsService} from "../services/comments.service";
-import {postsService} from "../services/posts.service";
+import {PostsQueryRepository} from "../repositories/posts/query";
+import {UsersQueryRepository} from "../repositories/users/query";
+import {CommentsService} from "../services/comments.service";
+import {PostsService} from "../services/posts.service";
 
 export const postsRouter = Router()
 
 class PostsController {
+  postsService: PostsService
+  postsQueryRepository: PostsQueryRepository
+  usersQueryRepository: UsersQueryRepository
+  commentsService: CommentsService
+
+  constructor() {
+    this.postsService = new PostsService()
+    this.postsQueryRepository = new PostsQueryRepository()
+    this.usersQueryRepository = new UsersQueryRepository()
+    this.commentsService = new CommentsService()
+  }
+
   async getPosts(req: RequestWithQuery<{
     pageNumber?: number,
     pageSize?: number,
@@ -32,7 +44,7 @@ class PostsController {
   }>, res: Response) {
     const {pageNumber, pageSize, sortBy, sortDirection} = req.query
 
-    const posts = await postsService.getAllPosts(
+    const posts = await this.postsService.getAllPosts(
       pageNumber,
       pageSize,
       sortBy,
@@ -42,7 +54,7 @@ class PostsController {
 
   async getPost(req: RequestWithParams<{ id: string }>, res: Response) {
     const {id} = req.params
-    const post = await postsQueryRepository.getPostById(id)
+    const post = await this.postsQueryRepository.getPostById(id)
 
     if (post) {
       res.send(post)
@@ -58,7 +70,7 @@ class PostsController {
     blogId: string
   }>, res: Response) {
     const {title, shortDescription, content, blogId} = req.body
-    const newPost = await postsService.createPost(title, shortDescription, content, blogId)
+    const newPost = await this.postsService.createPost(title, shortDescription, content, blogId)
 
     if (newPost) {
       res.status(201).send(newPost)
@@ -75,14 +87,14 @@ class PostsController {
   }>, res: Response) {
     const {id} = req.params
     const {title, blogId, content, shortDescription} = req.body
-    const post = await postsQueryRepository.getPostById(id)
+    const post = await this.postsQueryRepository.getPostById(id)
 
     if (!post) {
       res.sendStatus(404)
       return
     }
 
-    const isUpdated = await postsService.updatePostById(id, title, shortDescription, content, blogId)
+    const isUpdated = await this.postsService.updatePostById(id, title, shortDescription, content, blogId)
 
     if (isUpdated) {
       res.sendStatus(204)
@@ -93,7 +105,7 @@ class PostsController {
 
   async deletePost(req: RequestWithParams<{ id: string }>, res: Response) {
     const {id} = req.params
-    const isPostDeleted = await postsService.deletePostById(id)
+    const isPostDeleted = await this.postsService.deletePostById(id)
 
     if (isPostDeleted) {
       res.sendStatus(204)
@@ -105,7 +117,7 @@ class PostsController {
   async createComment(req: RequestWithParamsAndBody<{ postId: string }, { content: string }>, res: Response) {
     const {postId} = req.params
     const {content} = req.body
-    const post = await postsQueryRepository.getPostById(postId)
+    const post = await this.postsQueryRepository.getPostById(postId)
 
     if (!post) {
       res.sendStatus(404)
@@ -113,11 +125,11 @@ class PostsController {
     }
 
     if (req.userId) {
-      const user = await usersQueryRepository.getUserById(req.userId)
+      const user = await this.usersQueryRepository.getUserById(req.userId)
 
       if (user) {
         // send as object when 4 params?
-        const newComment = await commentsService.createComment(content, user.id, user?.accountData?.login, postId)
+        const newComment = await this.commentsService.createComment(content, user.id, user?.accountData?.login, postId)
         res.status(201).send(newComment)
         return
       }
@@ -136,14 +148,14 @@ class PostsController {
     }>, res: Response) {
     const {postId} = req.params
     const {pageNumber, pageSize, sortBy, sortDirection} = req.query
-    const post = await postsQueryRepository.getPostById(postId)
+    const post = await this.postsQueryRepository.getPostById(postId)
 
     if (!post) {
       res.sendStatus(404)
       return
     }
 
-    const comments = await commentsService.getCommentsByPostId(postId, pageNumber, pageSize, sortBy, sortDirection, req.userId)
+    const comments = await this.commentsService.getCommentsByPostId(postId, pageNumber, pageSize, sortBy, sortDirection, req.userId)
 
     res.send(comments)
   }
@@ -155,11 +167,11 @@ postsRouter.get('/',
   query('pageNumber').customSanitizer(toNumberOrUndefined),
   query('pageSize').customSanitizer(toNumberOrUndefined),
   query('sortDirection').customSanitizer(sortDirectionValueOrUndefined),
-  postsController.getPosts
+  postsController.getPosts.bind(postsController)
 )
 
 postsRouter.get('/:id',
-  postsController.getPost
+  postsController.getPost.bind(postsController)
 )
 
 postsRouter.post('/',
@@ -175,7 +187,7 @@ postsRouter.post('/',
   }).withMessage('Specified blog does not exist.'),
   param('blogId').customSanitizer(value => new UUID(value)),
   RequestErrorsValidationMiddleware,
-  postsController.createPost
+  postsController.createPost.bind(postsController)
 )
 
 postsRouter.put('/:id',
@@ -190,19 +202,19 @@ postsRouter.put('/:id',
     }
   }).withMessage('Specified blog does not exist.'),
   RequestErrorsValidationMiddleware,
-  postsController.updatePost
+  postsController.updatePost.bind(postsController)
 )
 
 postsRouter.delete('/:id',
   BasicAuthMiddleware,
-  postsController.deletePost
+  postsController.deletePost.bind(postsController)
 )
 
 postsRouter.post('/:postId/comments',
   AccessTokenAuthMiddleware,
   RequestErrorsValidationMiddleware,
   body('content').notEmpty().trim().isLength({min: 20, max: 300}),
-  postsController.createComment
+  postsController.createComment.bind(postsController)
 )
 
 postsRouter.get('/:postId/comments',
@@ -210,5 +222,5 @@ postsRouter.get('/:postId/comments',
   query('pageSize').customSanitizer(toNumberOrUndefined),
   query('sortDirection').customSanitizer(sortDirectionValueOrUndefined),
   LightAccessTokenAuthMiddleware,
-  postsController.getComments
+  postsController.getComments.bind(postsController)
 )

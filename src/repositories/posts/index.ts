@@ -2,7 +2,7 @@ import {DeleteResult, UpdateResult} from "mongodb";
 import {PostModel} from "../../db/models";
 import {IPost} from "../../interfaces";
 
-class PostsRepository {
+export class PostsRepository {
   /// typization
   async getAllPosts(filterOptions: any, projection: any, findOptions: any): Promise<IPost[]> {
     const {sort, skip, limit} = findOptions

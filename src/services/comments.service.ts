@@ -4,7 +4,7 @@ import {CommentViewInterface, PaginationInterface} from "../interfaces"
 import {commentsRepository} from "../repositories/comments"
 import {commentsQueryRepository} from "../repositories/comments/query"
 
-class CommentsService {
+export class CommentsService {
   async createComment(content: string, userId: string, userLogin: string, postId: string) {
     const newComment = {
       id: uuidv4(),
