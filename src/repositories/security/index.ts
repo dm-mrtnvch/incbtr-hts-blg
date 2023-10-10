@@ -1,6 +1,6 @@
 import {DeviceSessionModel} from "../../db/models";
 
-class SecurityRepository {
+export class SecurityRepository {
   createDeviceSession(newSession: any) {
     return DeviceSessionModel.create(newSession)
   }

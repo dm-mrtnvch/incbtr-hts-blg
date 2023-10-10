@@ -1,6 +1,6 @@
 import {DeviceSessionModel} from "../../db/models";
 
-class SecurityQueryRepository {
+export class SecurityQueryRepository {
   /// what about projection
   getActiveSessionsByUserId(userId: string): any {
     return DeviceSessionModel
