@@ -13,19 +13,19 @@ export interface IBlog {
 }
 
 export interface IPost {
-  id: string
-  title: string
-  shortDescription: string
-  content: string
-  blogId: string
-  blogName: string
-  createdAt: string
-  extendedLikesInfo: {
-    dislikesCount: Number,
-    likesCount: number,
-    myStatus: LIKE_STATUS_ENUM,
-    newestLikes: Array<Any>
-  }
+  // id: string
+  // title: string
+  // shortDescription: string
+  // content: string
+  // blogId: string
+  // blogName: string
+  // createdAt: string
+  // extendedLikesInfo: {
+  //   dislikesCount: Number,
+  //   likesCount: number,
+  //   myStatus: LIKE_STATUS_ENUM,
+  //   newestLikes: Array<Any>
+  // }
 }
 
 export interface IUser {

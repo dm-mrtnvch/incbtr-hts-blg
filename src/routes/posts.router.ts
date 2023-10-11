@@ -1,6 +1,7 @@
 import {Response, Router} from "express";
 import {body, param, query} from "express-validator";
 import {SortDirection, UUID} from "mongodb";
+import {PostModel} from "../db/models";
 import {sortDirectionValueOrUndefined, toNumberOrUndefined} from "../helpers/utils";
 import {
   LIKE_STATUS_ENUM,
@@ -55,7 +56,7 @@ class PostsController {
 
   async getPost(req: RequestWithParams<{ id: string }>, res: Response) {
     const {id} = req.params
-    const post = await this.postsQueryRepository.getPostById(id)
+    const post = await this.postsQueryRepository.getPostByIdAndUserId(id, req.userId)
     if (post) {
       res.send(post)
     } else {
@@ -110,6 +111,10 @@ class PostsController {
       res.sendStatus(404)
       return
     }
+
+    const isMyReactionExist = PostModel.findOne({
+
+    })
   }
 
   async deletePost(req: RequestWithParams<{ id: string }>, res: Response) {
@@ -180,6 +185,7 @@ postsRouter.get('/',
 )
 
 postsRouter.get('/:id',
+  LightAccessTokenAuthMiddleware,
   postsController.getPost.bind(postsController)
 )
 
@@ -216,6 +222,7 @@ postsRouter.put('/:id',
 
 postsRouter.put('/:id/like-status',
   AccessTokenAuthMiddleware,
+  LightAccessTokenAuthMiddleware,
   body('likeStatus').notEmpty().trim().custom((likeStatus) => {
     return Object.values(LIKE_STATUS_ENUM).includes(likeStatus)
   }),

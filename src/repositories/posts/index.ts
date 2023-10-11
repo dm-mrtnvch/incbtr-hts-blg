@@ -18,13 +18,8 @@ export class PostsRepository {
 
   async createPost(newPost: any): Promise<any> {
     try {
-      const createdPost = await PostModel.create(newPost)
-      const {
-        id, title, shortDescription, content, blogId, blogName, createdAt,
-        extendedLikesInfo: {
-          dislikesCount, likesCount, myStatus, newestLikes
-        }
-      } = createdPost;
+      const createdPost = await PostModel.create(newPost) as any
+      const {id, title, shortDescription, content, blogId, blogName, createdAt} = createdPost;
       return {
         id,
         title,
@@ -33,12 +28,7 @@ export class PostsRepository {
         blogId,
         blogName,
         createdAt,
-        extendedLikesInfo: {
-          dislikesCount,
-          likesCount,
-          myStatus,
-          newestLikes
-        }
+        likes: []
       }
     } catch (e) {
       console.log(`createPost error: ${e}`);

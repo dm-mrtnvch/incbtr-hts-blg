@@ -44,6 +44,18 @@ export const blogSchema = new mongoose.Schema<IBlog>({
   createdAt: String,
 })
 
+export const postLikeSchema = new mongoose.Schema({
+  userId: String,
+  login: String,
+  likeStatus: {
+    type: String,
+    enum: LIKE_STATUS_ENUM,
+    default: LIKE_STATUS_ENUM.NONE
+  },
+  createdAt: String
+}, {_id: false})
+
+
 export const postSchema = new mongoose.Schema<IPost>({
   id: String,
   title: String,
@@ -52,12 +64,7 @@ export const postSchema = new mongoose.Schema<IPost>({
   blogId: String,
   blogName: String,
   createdAt: String,
-  extendedLikesInfo: {
-    dislikesCount: Number,
-    likesCount: Number,
-    myStatus: String,
-    newestLikes: Array
-  }
+  likes: [postLikeSchema]
 })
 
 export const commentLikeSchema = new mongoose.Schema({

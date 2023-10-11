@@ -109,6 +109,19 @@ export class BlogsService {
       blogId,
       blogName: blog?.name || 'blog_name',
       createdAt: new Date().toISOString(),
+      likes: []
+    }
+
+    const createdBlogPost = await this.blogsRepository.createBlogPost(newBlogPost)
+
+    return {
+      id: createdBlogPost.id,
+      title: createdBlogPost.title,
+      shortDescription: createdBlogPost.shortDescription,
+      content: createdBlogPost.content,
+      blogId: createdBlogPost.blogId,
+      blogName: createdBlogPost.blogName || 'blog_name',
+      createdAt: createdBlogPost.createdAt,
       extendedLikesInfo: {
         dislikesCount: 0,
         likesCount: 0,
@@ -116,8 +129,6 @@ export class BlogsService {
         newestLikes: []
       }
     }
-
-    return this.blogsRepository.createBlogPost(newBlogPost)
 
   }
 
