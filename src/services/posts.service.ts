@@ -1,12 +1,8 @@
-import {DeleteResult, FindOptions, SortDirection} from "mongodb";
+import {FindOptions, SortDirection} from "mongodb";
 import {v4 as uuidv4} from "uuid";
-
-import {BlogModel, PostModel} from "../db/models";
-import {IPost} from "../interfaces";
-import {BlogsQueryRepository, blogsQueryRepository} from "../repositories/blogs/query";
-import {PostsRepository, postsRepository} from "../repositories/posts";
-import {PostsQueryRepository, postsQueryRepository} from "../repositories/posts/query";
-import {blogsService} from "./blogs.service";
+import {BlogsQueryRepository} from "../repositories/blogs/query";
+import {PostsRepository} from "../repositories/posts";
+import {PostsQueryRepository} from "../repositories/posts/query";
 
 export class PostsService {
   postsRepository: PostsRepository
@@ -51,7 +47,7 @@ export class PostsService {
     }
   }
 
-  async createPost(title: string, shortDescription: string, content: string, blogId: string) {
+  async createPost(title: string, shortDescription: string, content: string, blogId: string): Promise<any> {
     const blog = await this.blogsQueryRepository.getBlogById(blogId)
 
     if (blog) {
@@ -62,7 +58,13 @@ export class PostsService {
         shortDescription,
         blogId,
         blogName: blog.name,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        extendedLikesInfo: {
+          dislikesCount: 0,
+          likesCount: 0,
+          myStatus: 'None',
+          newestLikes: []
+        }
       }
 
       return await this.postsRepository.createPost(newPost)

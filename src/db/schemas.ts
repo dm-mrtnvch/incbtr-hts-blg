@@ -52,6 +52,12 @@ export const postSchema = new mongoose.Schema<IPost>({
   blogId: String,
   blogName: String,
   createdAt: String,
+  extendedLikesInfo: {
+    dislikesCount: Number,
+    likesCount: Number,
+    myStatus: String,
+    newestLikes: Array
+  }
 })
 
 export const commentLikeSchema = new mongoose.Schema({

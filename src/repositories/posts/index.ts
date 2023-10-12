@@ -16,11 +16,15 @@ export class PostsRepository {
       .lean()
   }
 
-  async createPost(newPost: IPost): Promise<IPost | void> {
+  async createPost(newPost: any): Promise<any> {
     try {
       const createdPost = await PostModel.create(newPost)
-      const {id, title, shortDescription, content, blogId, blogName, createdAt} = createdPost
-
+      const {
+        id, title, shortDescription, content, blogId, blogName, createdAt,
+        extendedLikesInfo: {
+          dislikesCount, likesCount, myStatus, newestLikes
+        }
+      } = createdPost;
       return {
         id,
         title,
@@ -29,6 +33,12 @@ export class PostsRepository {
         blogId,
         blogName,
         createdAt,
+        extendedLikesInfo: {
+          dislikesCount,
+          likesCount,
+          myStatus,
+          newestLikes
+        }
       }
     } catch (e) {
       console.log(`createPost error: ${e}`);

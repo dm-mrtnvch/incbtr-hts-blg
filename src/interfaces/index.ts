@@ -1,5 +1,6 @@
 import {Request} from "express";
 import {SortDirection} from "mongodb";
+import Any = jasmine.Any;
 // import {expiredTokensCollection} from "../db/db";
 
 export interface IBlog {
@@ -19,6 +20,12 @@ export interface IPost {
   blogId: string
   blogName: string
   createdAt: string
+  extendedLikesInfo: {
+    dislikesCount: Number,
+    likesCount: number,
+    myStatus: LIKE_STATUS_ENUM,
+    newestLikes: Array<Any>
+  }
 }
 
 export interface IUser {

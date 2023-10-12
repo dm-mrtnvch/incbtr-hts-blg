@@ -3,7 +3,10 @@ import {IPost} from "../../interfaces";
 
 export class PostsQueryRepository {
   async getPostById(id: string): Promise<IPost | null> {
-    return PostModel.findOne({id}, {projection: {_id: 0, __v: 0}})
+    return PostModel
+      .findOne({id})
+      .select({_id: 0, __v: 0})
+      .lean()
   }
 
   async getAllPostsCount(filterOptions: any): Promise<number> {
