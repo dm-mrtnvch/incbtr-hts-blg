@@ -65,17 +65,17 @@ export class PostsService {
       const createdPost = await this.postsRepository.createPost(newPost)
       return {
         id: createdPost.id,
-          title: createdPost.title,
-          content: createdPost.content,
-          shortDescription: createdPost.shortDescription,
-          blogId: createdPost.blogId,
-          blogName: createdPost.blogName,
-          createdAt: createdPost.createdAt,
-          extendedLikesInfo: {
+        title: createdPost.title,
+        content: createdPost.content,
+        shortDescription: createdPost.shortDescription,
+        blogId: createdPost.blogId,
+        blogName: createdPost.blogName,
+        createdAt: createdPost.createdAt,
+        extendedLikesInfo: {
           dislikesCount: 0,
-            likesCount: 0,
-            myStatus: 'None',
-            newestLikes: []
+          likesCount: 0,
+          myStatus: 'None',
+          newestLikes: []
         }
       }
     } else {

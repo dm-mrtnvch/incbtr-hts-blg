@@ -2,7 +2,7 @@ import {PostModel} from "../../db/models";
 import {IPost, LIKE_STATUS_ENUM} from "../../interfaces";
 
 export class PostsQueryRepository {
-  async getPostById(id: string): Promise<IPost | null> {
+  async getPostById(id: string): Promise<any> {
     return PostModel
       .findOne({id})
       .select({_id: 0, __v: 0})

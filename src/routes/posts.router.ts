@@ -1,7 +1,8 @@
+import {is} from "date-fns/locale";
 import {Response, Router} from "express";
 import {body, param, query} from "express-validator";
 import {SortDirection, UUID} from "mongodb";
-import {PostModel} from "../db/models";
+import {CommentModel, PostModel} from "../db/models";
 import {sortDirectionValueOrUndefined, toNumberOrUndefined} from "../helpers/utils";
 import {
   LIKE_STATUS_ENUM,
@@ -106,15 +107,64 @@ class PostsController {
 
   async likePost(req: RequestWithParamsAndBody<{ id: string }, { likeStatus: string }>, res: Response) {
     const isPostExist = await this.postsQueryRepository.getPostById(req.params.id)
+    const user = await this.usersQueryRepository.getUserById(req.userId)
 
     if (!isPostExist) {
       res.sendStatus(404)
       return
     }
 
-    const isMyReactionExist = PostModel.findOne({
+    const isMyReactionExist = await PostModel.findOne({
+      id: req.params.id,
+      'likes.userId': req.userId
+    }).lean() as any
 
-    })
+    console.log('is', isMyReactionExist)
+
+
+    if (!isMyReactionExist && req.body.likeStatus !== LIKE_STATUS_ENUM.NONE) {
+      await PostModel.findOneAndUpdate({id: req.params.id}, {
+        $push: {
+          'likes': {
+            userId: req.userId,
+            login: user.accountData.login,
+            likeStatus: req.body.likeStatus,
+            createdAt: new Date().toISOString()
+          }
+        }
+      })
+      res.sendStatus(204)
+      return
+    }
+
+    if (!isMyReactionExist && req.body.likeStatus === LIKE_STATUS_ENUM.NONE) {
+      res.sendStatus(204)
+      return
+    }
+
+    if (isMyReactionExist && (isMyReactionExist?.likes?.find((like: any) => like.userId === req.userId)?.likeStatus === LIKE_STATUS_ENUM.NONE)) {
+      await PostModel.findOneAndUpdate({id: req.params.id}, {
+        $pull: {
+          likes: {userId: req.userId}
+        }
+      })
+
+      res.sendStatus(204)
+      return
+    }
+
+    if (isMyReactionExist) {
+      await PostModel.findOneAndUpdate({id: req.params.id, 'likes.userId': req.userId}, {
+        $set: {
+          'likes.$.likeStatus': req.body.likeStatus,
+        }
+      })
+      res.sendStatus(204)
+      return
+    }
+
+
+
   }
 
   async deletePost(req: RequestWithParams<{ id: string }>, res: Response) {
