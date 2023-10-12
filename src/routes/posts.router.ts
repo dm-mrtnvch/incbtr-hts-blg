@@ -219,6 +219,7 @@ postsRouter.put('/:id/like-status',
   body('likeStatus').notEmpty().trim().custom((likeStatus) => {
     return Object.values(LIKE_STATUS_ENUM).includes(likeStatus)
   }),
+  RequestErrorsValidationMiddleware,
   postsController.likePost.bind(postsController)
 )
 
