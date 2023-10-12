@@ -50,7 +50,12 @@ export class BlogsRepository {
   async createBlogPost(newBlogPost: IPost): Promise<IPost | void> {
     try {
       const newPost = await PostModel.create({...newBlogPost})
-      const {id, title, shortDescription, content, blogId, blogName, createdAt}: IPost = newPost
+      const {
+        id, title, shortDescription, content, blogId, blogName, createdAt,
+        extendedLikesInfo: {
+          likesCount, newestLikes, dislikesCount, myStatus
+        }
+      }: IPost = newPost
 
       return {
         id,
@@ -60,6 +65,12 @@ export class BlogsRepository {
         blogId,
         blogName,
         createdAt,
+        extendedLikesInfo: {
+          likesCount,
+          dislikesCount,
+          myStatus,
+          newestLikes
+        }
       }
     } catch (e) {
       console.log(`createBlogPost error: ${e}`)

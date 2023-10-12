@@ -1,10 +1,9 @@
-import exp from "constants";
 import {FindOptions, SortDirection} from "mongodb";
 import {v4 as uuidv4} from "uuid";
-import {IBlog, IPost} from "../interfaces";
+import {IBlog, IPost, LIKE_STATUS_ENUM} from "../interfaces";
 import {BlogsRepository} from "../repositories/blogs";
 import {BlogsQueryRepository} from "../repositories/blogs/query";
-import {PostsQueryRepository, postsQueryRepository} from "../repositories/posts/query";
+import {PostsQueryRepository} from "../repositories/posts/query";
 
 export class BlogsService {
   blogsRepository: BlogsRepository
@@ -109,7 +108,13 @@ export class BlogsService {
       content,
       blogId,
       blogName: blog?.name || 'blog_name',
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      extendedLikesInfo: {
+        dislikesCount: 0,
+        likesCount: 0,
+        myStatus: LIKE_STATUS_ENUM.NONE,
+        newestLikes: []
+      }
     }
 
     return this.blogsRepository.createBlogPost(newBlogPost)
