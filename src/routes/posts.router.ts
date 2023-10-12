@@ -3,6 +3,7 @@ import {body, param, query} from "express-validator";
 import {SortDirection, UUID} from "mongodb";
 import {sortDirectionValueOrUndefined, toNumberOrUndefined} from "../helpers/utils";
 import {
+  LIKE_STATUS_ENUM,
   RequestWithBody,
   RequestWithParams,
   RequestWithParamsAndBody,
@@ -55,7 +56,6 @@ class PostsController {
   async getPost(req: RequestWithParams<{ id: string }>, res: Response) {
     const {id} = req.params
     const post = await this.postsQueryRepository.getPostById(id)
-    console.log('post', post)
     if (post) {
       res.send(post)
     } else {
@@ -100,6 +100,15 @@ class PostsController {
       res.sendStatus(204)
     } else {
       res.sendStatus(404)
+    }
+  }
+
+  async likePost(req: RequestWithParamsAndBody<{ id: string }, { likeStatus: string }>, res: Response) {
+    const isPostExist = await this.postsQueryRepository.getPostById(req.params.id)
+
+    if (!isPostExist) {
+      res.sendStatus(404)
+      return
     }
   }
 
@@ -203,6 +212,14 @@ postsRouter.put('/:id',
   }).withMessage('Specified blog does not exist.'),
   RequestErrorsValidationMiddleware,
   postsController.updatePost.bind(postsController)
+)
+
+postsRouter.put('/:id/like-status',
+  AccessTokenAuthMiddleware,
+  body('likeStatus').notEmpty().trim().custom((likeStatus) => {
+    return Object.values(LIKE_STATUS_ENUM).includes(likeStatus)
+  }),
+  postsController.likePost.bind(postsController)
 )
 
 postsRouter.delete('/:id',
