@@ -57,6 +57,7 @@ class PostsController {
 
   async getPost(req: RequestWithParams<{ id: string }>, res: Response) {
     const {id} = req.params
+    console.log('req', req.userId)
     const post = await this.postsQueryRepository.getPostByIdAndUserId(id, req.userId)
     if (post) {
       res.send(post)

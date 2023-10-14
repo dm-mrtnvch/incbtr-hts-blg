@@ -27,6 +27,16 @@ export class PostsQueryRepository {
       return null
     }
 
+    const newestLikes = post.likes
+      .filter((like: any) => like.likeStatus === LIKE_STATUS_ENUM.LIKE)
+      .sort((a: any, b: any) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 3)
+      .map((l: any) => ({
+        userId: l.userId,
+        login: l.login,
+        addedAt: l.createdAt
+      })) ?? []
+
     return {
       id: post.id,
       title: post.title,
@@ -36,10 +46,10 @@ export class PostsQueryRepository {
       blogName: post.blogName,
       createdAt: post.createdAt,
       extendedLikesInfo: {
-        dislikesCount: post.likes.find((like: any) => like.likeStatus === LIKE_STATUS_ENUM.DISLIKE) ?? 0,
-        likesCount: post.likes.find((like: any) => like.likeStatus === LIKE_STATUS_ENUM.LIKE) ?? 0,
-        myStatus: post.likes.find((like: any) => like.userId === userId) || 'None',
-        newestLikes: []
+        dislikesCount: post.likes.filter((like: any) => like.likeStatus === LIKE_STATUS_ENUM.DISLIKE).length ?? 0,
+        likesCount: post.likes.filter((like: any) => like.likeStatus === LIKE_STATUS_ENUM.LIKE).length ?? 0,
+        myStatus: post.likes.find((like: any) => like.userId === userId)?.likeStatus ?? 'None',
+        newestLikes
       }
     }
   }
