@@ -51,7 +51,8 @@ class PostsController {
       pageNumber,
       pageSize,
       sortBy,
-      sortDirection)
+      sortDirection,
+      req.userId)
     res.send(posts)
   }
 
@@ -232,6 +233,7 @@ postsRouter.get('/',
   query('pageNumber').customSanitizer(toNumberOrUndefined),
   query('pageSize').customSanitizer(toNumberOrUndefined),
   query('sortDirection').customSanitizer(sortDirectionValueOrUndefined),
+  LightAccessTokenAuthMiddleware,
   postsController.getPosts.bind(postsController)
 )
 

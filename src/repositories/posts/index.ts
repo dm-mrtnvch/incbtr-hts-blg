@@ -1,19 +1,44 @@
 import {DeleteResult, UpdateResult} from "mongodb";
 import {PostModel} from "../../db/models";
-import {IPost} from "../../interfaces";
+import {IPost, LIKE_STATUS_ENUM} from "../../interfaces";
 
 export class PostsRepository {
   /// typization
-  async getAllPosts(filterOptions: any, projection: any, findOptions: any): Promise<IPost[]> {
+  async getAllPosts(filterOptions: any, projection: any, findOptions: any, userId: string): Promise<any> {
     const {sort, skip, limit} = findOptions
 
-    return PostModel
+    const posts = await PostModel
       .find(filterOptions)
       .select(projection)
       .sort(sort)
       .skip(skip)
       .limit(limit)
       .lean()
+
+    return posts.map(post => ({
+      id: post.id,
+        title: post.title,
+      shortDescription: post.shortDescription,
+      content: post.content,
+      blogId: post.blogId,
+      blogName: post.blogName,
+      createdAt: post.createdAt,
+      extendedLikesInfo: {
+      dislikesCount: post.likes.filter((like: any) => like.likeStatus === LIKE_STATUS_ENUM.DISLIKE).length ?? 0,
+        likesCount: post.likes.filter((like: any) => like.likeStatus === LIKE_STATUS_ENUM.LIKE).length ?? 0,
+        myStatus: post.likes.find((like: any) => like.userId === userId)?.likeStatus ?? 'None',
+        newestLikes: post.likes
+          .filter((like: any) => like.likeStatus === LIKE_STATUS_ENUM.LIKE)
+          .sort((a: any, b: any) => new Date(b.createdAt) - new Date(a.createdAt))
+          .slice(0, 3)
+          .map((l: any) => ({
+            userId: l.userId,
+            login: l.login,
+            addedAt: l.createdAt
+          })) ?? []
+    }
+
+    })) as any
   }
 
   async createPost(newPost: any): Promise<any> {

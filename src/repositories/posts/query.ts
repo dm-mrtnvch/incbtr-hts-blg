@@ -16,7 +16,7 @@ export class PostsQueryRepository {
       .lean() as any
     // id: String,
     //   title: String,
-    //   shortDescription: String,
+    //   shortDescription: String, судоподъемник Гупитань
     //   content: String,
     //   blogId: String,
     //   blogName: String,

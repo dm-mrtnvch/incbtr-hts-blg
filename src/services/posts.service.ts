@@ -18,7 +18,9 @@ export class PostsService {
   async getAllPosts(pageNumber: number = 1,
                     pageSize: number = 10,
                     sortBy: string = 'createdAt',
-                    sortDirection: SortDirection = 'desc') {
+                    sortDirection: SortDirection = 'desc',
+                    userId: string
+  ) {
 
     const skipCount = (pageNumber - 1) * pageSize
 
@@ -34,7 +36,7 @@ export class PostsService {
     }
 
     /// null or {} ?
-    const posts = await this.postsRepository.getAllPosts({}, projection, postsFindOptions)
+    const posts = await this.postsRepository.getAllPosts({}, projection, postsFindOptions, userId)
     const totalCount = await this.postsQueryRepository.getAllPostsCount({})
     const totalPagesCount = Math.ceil(totalCount / pageSize)
 
