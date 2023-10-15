@@ -1,6 +1,6 @@
 import {FilterQuery} from "mongoose";
 import {BlogModel, PostModel} from "../../db/models";
-import {IBlog, IPost} from "../../interfaces";
+import {IBlog, IPost, LIKE_STATUS_ENUM} from "../../interfaces";
 
 export class BlogsRepository {
   /// typization ??
@@ -17,16 +17,40 @@ export class BlogsRepository {
   }
 
   /// send blogId and -> .find({blogId}) or send and filteroptions = {blogId}
-  async getBlogPostsById(blogId: string, projection: any, findOptions: any): Promise<any> { /// typization
+  async getBlogPostsById(blogId: string, projection: any, findOptions: any, userId: string): Promise<any> { /// typization
     const {sort, skip, limit} = findOptions
 
-    return PostModel
+    const posts = await PostModel
       .find({blogId})
       .select(projection)
       .sort(sort)
       .skip(skip)
       .limit(limit)
       .lean()
+
+    return posts.map(post => ({
+      id: post.id,
+      title: post.title,
+      shortDescription: post.shortDescription,
+      content: post.content,
+      blogId: post.blogId,
+      blogName: post.blogName,
+      createdAt: post.createdAt,
+      extendedLikesInfo: {
+        dislikesCount: post.likes.filter((like: any) => like.likeStatus === LIKE_STATUS_ENUM.DISLIKE).length ?? 0,
+        likesCount: post.likes.filter((like: any) => like.likeStatus === LIKE_STATUS_ENUM.LIKE).length ?? 0,
+        myStatus: post.likes.find((like: any) => like.userId === userId)?.likeStatus ?? 'None',
+        newestLikes: post.likes
+          .filter((like: any) => like.likeStatus === LIKE_STATUS_ENUM.LIKE)
+          .sort((a: any, b: any) => new Date(b.createdAt) - new Date(a.createdAt))
+          .slice(0, 3)
+          .map((l: any) => ({
+            userId: l.userId,
+            login: l.login,
+            addedAt: l.createdAt
+          })) ?? []
+      }
+    })) as any
   }
 
   async createBlog(newBlog: IBlog): Promise<IBlog | void> { /// is void type ok?

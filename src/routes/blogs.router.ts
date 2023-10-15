@@ -11,7 +11,11 @@ import {
   RequestWithParamsAndQuery,
   RequestWithQuery
 } from "../interfaces";
-import {BasicAuthMiddleware, RequestErrorsValidationMiddleware} from "../middlewares/middlewares";
+import {
+  BasicAuthMiddleware,
+  LightAccessTokenAuthMiddleware,
+  RequestErrorsValidationMiddleware
+} from "../middlewares/middlewares";
 import {BlogsQueryRepository, blogsQueryRepository} from "../repositories/blogs/query";
 import {BlogsService, blogsService} from "../services/blogs.service";
 import {
@@ -52,7 +56,7 @@ class BlogsController {
     }
   }
 
-  async getPost(req: RequestWithParamsAndQuery<{ blogId: string }, IPaginationRequest>, res: Response) {
+  async getPosts(req: RequestWithParamsAndQuery<{ blogId: string }, IPaginationRequest>, res: Response) {
     const {blogId} = req.params
     const {pageNumber, pageSize, sortBy, sortDirection} = req.query
     const isBlogExist = await this.blogsQueryRepository.getBlogById(blogId)
@@ -68,6 +72,7 @@ class BlogsController {
       pageSize,
       sortBy,
       sortDirection,
+      req.userId
     )
     res.send(blogPosts)
   }
@@ -130,7 +135,8 @@ blogsRouter.get('/:id',
 
 blogsRouter.get('/:blogId/posts',
   checkSchema(paginationSanitizationSchema),
-  blogsController.getPost.bind(blogsController)
+  LightAccessTokenAuthMiddleware,
+  blogsController.getPosts.bind(blogsController)
 )
 
 blogsRouter.post('/',

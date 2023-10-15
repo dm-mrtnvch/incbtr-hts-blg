@@ -60,6 +60,7 @@ export class BlogsService {
     pageSize: number = 10,
     sortBy: string = 'createdAt',
     sortDirection: SortDirection = 'desc',
+    userId: string,
   ) {
     const skipCount = (pageNumber - 1) * pageSize
     const findOptions: FindOptions = {
@@ -73,7 +74,7 @@ export class BlogsService {
       __v: 0
     }
 
-    const posts = await this.blogsRepository.getBlogPostsById(blogId, projection, findOptions)
+    const posts = await this.blogsRepository.getBlogPostsById(blogId, projection, findOptions, userId)
     const totalCount = await this.postsQueryRepository.getAllPostsCount({blogId})
     const totalPagesCount = Math.ceil(totalCount / pageSize)
 

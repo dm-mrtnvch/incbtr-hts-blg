@@ -17,14 +17,14 @@ export class PostsRepository {
 
     return posts.map(post => ({
       id: post.id,
-        title: post.title,
+      title: post.title,
       shortDescription: post.shortDescription,
       content: post.content,
       blogId: post.blogId,
       blogName: post.blogName,
       createdAt: post.createdAt,
       extendedLikesInfo: {
-      dislikesCount: post.likes.filter((like: any) => like.likeStatus === LIKE_STATUS_ENUM.DISLIKE).length ?? 0,
+        dislikesCount: post.likes.filter((like: any) => like.likeStatus === LIKE_STATUS_ENUM.DISLIKE).length ?? 0,
         likesCount: post.likes.filter((like: any) => like.likeStatus === LIKE_STATUS_ENUM.LIKE).length ?? 0,
         myStatus: post.likes.find((like: any) => like.userId === userId)?.likeStatus ?? 'None',
         newestLikes: post.likes
@@ -36,8 +36,7 @@ export class PostsRepository {
             login: l.login,
             addedAt: l.createdAt
           })) ?? []
-    }
-
+      }
     })) as any
   }
 
