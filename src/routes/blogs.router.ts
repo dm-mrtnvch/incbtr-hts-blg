@@ -1,5 +1,6 @@
 import {Response, Router} from "express"
 import {checkSchema} from "express-validator";
+import {blogsController} from "../compostion-root";
 import {
   IBlogRequest,
   IPaginationRequest,
@@ -16,8 +17,8 @@ import {
   LightAccessTokenAuthMiddleware,
   RequestErrorsValidationMiddleware
 } from "../middlewares/middlewares";
-import {BlogsQueryRepository, blogsQueryRepository} from "../repositories/blogs/query";
-import {BlogsService, blogsService} from "../services/blogs.service";
+import {BlogsQueryRepository} from "../repositories/blogs/query";
+import {BlogsService} from "../services/blogs.service";
 import {
   blogCreateUpdateValidationSchema,
   paginationSanitizationSchema,
@@ -26,13 +27,11 @@ import {
 
 export const blogsRouter = Router()
 
-class BlogsController {
-  blogsService: BlogsService
-  blogsQueryRepository: BlogsQueryRepository
-  constructor() {
-    this.blogsService = new BlogsService()
-    this.blogsQueryRepository = new BlogsQueryRepository()
-  }
+export class BlogsController {
+  constructor(
+    protected blogsService: BlogsService,
+    protected blogsQueryRepository: BlogsQueryRepository
+  ) {}
 
   async getBlogs(req: RequestWithQuery<IPaginationWithSearchRequest>, res: Response) {
     const {searchNameTerm, pageNumber, pageSize, sortBy, sortDirection} = req.query
@@ -122,7 +121,6 @@ class BlogsController {
   }
 }
 
-const blogsController = new BlogsController()
 
 blogsRouter.get('/',
   checkSchema(paginationSanitizationSchema),

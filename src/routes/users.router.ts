@@ -1,20 +1,20 @@
 import {Response, Router} from "express";
 import {body, query} from "express-validator";
 import {SortDirection} from "mongodb";
+import {usersController} from "../compostion-root";
 import {sortDirectionValueOrUndefined, toNumberOrUndefined} from "../helpers/utils";
 import {RequestWithBody, RequestWithParams, RequestWithQuery} from "../interfaces";
 import {BasicAuthMiddleware, RequestErrorsValidationMiddleware} from "../middlewares/middlewares";
-import {usersQueryRepository} from "../repositories/users/query";
-import {UsersService, usersService} from "../services/users.service";
+import {UsersQueryRepository} from "../repositories/users/query";
+import {UsersService} from "../services/users.service";
 
 export const usersRouter = Router()
 
-class UsersController {
-  usersService: UsersService
-
-  constructor() {
-    this.usersService = new UsersService()
-  }
+export class UsersController {
+  constructor(
+    protected usersService: UsersService,
+    protected usersQueryRepository: UsersQueryRepository
+  ) {}
 
   async getUsers(req: RequestWithQuery<{
     sortBy?: string,
@@ -26,7 +26,7 @@ class UsersController {
   }>, res: Response) {
     const {sortBy, sortDirection, pageNumber, pageSize, searchLoginTerm, searchEmailTerm} = req.query
 
-    const users = await usersQueryRepository.getAllUsers(sortBy, sortDirection, pageNumber, pageSize, searchLoginTerm, searchEmailTerm)
+    const users = await this.usersQueryRepository.getAllUsers(sortBy, sortDirection, pageNumber, pageSize, searchLoginTerm, searchEmailTerm)
     res.send(users)
   }
 
@@ -48,8 +48,6 @@ class UsersController {
     }
   }
 }
-
-const usersController = new UsersController()
 
 usersRouter.get('/',
   BasicAuthMiddleware,

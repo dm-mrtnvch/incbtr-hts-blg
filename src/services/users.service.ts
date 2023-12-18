@@ -1,6 +1,5 @@
 import bcrypt from "bcrypt"
 import add from "date-fns/add";
-import {FindOptions, SortDirection} from "mongodb";
 import {v4 as uuidv4} from "uuid";
 import {emailAdapter} from "../adapters/emailAdapter";
 import {EmailConfirmationType} from "../interfaces";
@@ -8,15 +7,11 @@ import {UsersRepository} from "../repositories/users";
 import {UsersQueryRepository} from "../repositories/users/query";
 
 
-
 export class UsersService {
-  usersRepository: UsersRepository
-  usersQueryRepository: UsersQueryRepository
-
-  constructor() {
-    this.usersRepository = new UsersRepository()
-    this.usersQueryRepository = new UsersQueryRepository()
-  }
+  constructor(
+    protected usersRepository: UsersRepository,
+    protected usersQueryRepository: UsersQueryRepository
+  ) {}
 
   // async getAllUsers(
   //   sortBy: string = 'createdAt',
@@ -181,5 +176,3 @@ export class UsersService {
     }
   }
 }
-
-export const usersService = new UsersService()

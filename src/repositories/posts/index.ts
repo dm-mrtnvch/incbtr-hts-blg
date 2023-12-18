@@ -15,7 +15,7 @@ export class PostsRepository {
       .limit(limit)
       .lean()
 
-    return posts.map(post => ({
+    return posts.map((post: any) => ({
       id: post.id,
       title: post.title,
       shortDescription: post.shortDescription,
@@ -29,6 +29,7 @@ export class PostsRepository {
         myStatus: post.likes.find((like: any) => like.userId === userId)?.likeStatus ?? 'None',
         newestLikes: post.likes
           .filter((like: any) => like.likeStatus === LIKE_STATUS_ENUM.LIKE)
+          // @ts-ignore
           .sort((a: any, b: any) => new Date(b.createdAt) - new Date(a.createdAt))
           .slice(0, 3)
           .map((l: any) => ({

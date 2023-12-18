@@ -29,6 +29,7 @@ export class PostsQueryRepository {
 
     const newestLikes = post.likes
       .filter((like: any) => like.likeStatus === LIKE_STATUS_ENUM.LIKE)
+      // @ts-ignore
       .sort((a: any, b: any) => new Date(b.createdAt) - new Date(a.createdAt))
       .slice(0, 3)
       .map((l: any) => ({

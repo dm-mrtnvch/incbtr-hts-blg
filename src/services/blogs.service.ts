@@ -6,14 +6,11 @@ import {BlogsQueryRepository} from "../repositories/blogs/query";
 import {PostsQueryRepository} from "../repositories/posts/query";
 
 export class BlogsService {
-  blogsRepository: BlogsRepository
-  blogsQueryRepository: BlogsQueryRepository
-  postsQueryRepository: PostsQueryRepository
-
-  constructor() {
-    this.blogsRepository = new BlogsRepository()
-    this.blogsQueryRepository = new BlogsQueryRepository()
-    this.postsQueryRepository = new PostsQueryRepository()
+  constructor(
+    protected blogsRepository: BlogsRepository,
+    protected blogsQueryRepository: BlogsQueryRepository,
+    protected postsQueryRepository: PostsQueryRepository
+  ) {
   }
 
   async getAllBlogs(
@@ -144,4 +141,4 @@ export class BlogsService {
   }
 }
 
-export const blogsService = new BlogsService()
+
