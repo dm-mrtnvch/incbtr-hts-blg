@@ -5,12 +5,11 @@ import {CommentsRepository} from "../repositories/comments"
 import {CommentsQueryRepository} from "../repositories/comments/query"
 
 export class CommentsService {
-  commentsRepository: CommentsRepository
-  commentsQueryRepository: CommentsQueryRepository
+  constructor(
+    protected commentsRepository: CommentsRepository,
+    protected commentsQueryRepository: CommentsQueryRepository,
+  ) {
 
-  constructor() {
-    this.commentsRepository = new CommentsRepository()
-    this.commentsQueryRepository = new CommentsQueryRepository()
   }
 
   async createComment(content: string, userId: string, userLogin: string, postId: string) {
@@ -75,5 +74,3 @@ export class CommentsService {
     return !!response.deletedCount
   }
 }
-
-export const commentsService = new CommentsService()

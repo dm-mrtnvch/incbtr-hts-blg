@@ -2,6 +2,7 @@ import {is} from "date-fns/locale";
 import {Response, Router} from "express";
 import {body, param, query} from "express-validator";
 import {SortDirection, UUID} from "mongodb";
+import {postsController} from "../compostion-root";
 import {CommentModel, PostModel} from "../db/models";
 import {sortDirectionValueOrUndefined, toNumberOrUndefined} from "../helpers/utils";
 import {
@@ -26,17 +27,14 @@ import {PostsService} from "../services/posts.service";
 
 export const postsRouter = Router()
 
-class PostsController {
-  postsService: PostsService
-  postsQueryRepository: PostsQueryRepository
-  usersQueryRepository: UsersQueryRepository
-  commentsService: CommentsService
+export class PostsController {
+  constructor(
+    protected postsService: PostsService,
+    protected commentsService: CommentsService,
+    protected usersQueryRepository: UsersQueryRepository,
+    protected postsQueryRepository: PostsQueryRepository
+  ) {
 
-  constructor() {
-    this.postsService = new PostsService()
-    this.postsQueryRepository = new PostsQueryRepository()
-    this.usersQueryRepository = new UsersQueryRepository()
-    this.commentsService = new CommentsService()
   }
 
   async getPosts(req: RequestWithQuery<{
@@ -53,6 +51,7 @@ class PostsController {
       sortBy,
       sortDirection,
       req.userId)
+
     res.send(posts)
   }
 
@@ -166,7 +165,6 @@ class PostsController {
     }
 
 
-
   }
 
   async deletePost(req: RequestWithParams<{ id: string }>, res: Response) {
@@ -227,7 +225,6 @@ class PostsController {
   }
 }
 
-const postsController = new PostsController()
 
 postsRouter.get('/',
   query('pageNumber').customSanitizer(toNumberOrUndefined),

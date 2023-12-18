@@ -1,5 +1,6 @@
 import {Response, Router} from "express";
 import {body} from "express-validator";
+import {commentsController} from "../compostion-root";
 import {CommentModel} from "../db/models";
 import {LIKE_STATUS_ENUM, RequestWithParams, RequestWithParamsAndBody} from "../interfaces";
 import {
@@ -13,15 +14,12 @@ import {CommentsService} from "../services/comments.service";
 
 export const commentsRouter = Router()
 
-class CommentsController {
-  commentsQueryRepository: CommentsQueryRepository
-  commentsService: CommentsService
-  usersQueryRepository: UsersQueryRepository
-
-  constructor() {
-    this.commentsQueryRepository = new CommentsQueryRepository()
-    this.commentsService = new CommentsService()
-    this.usersQueryRepository = new UsersQueryRepository()
+export class CommentsController {
+  constructor(
+    protected commentsService: CommentsService,
+    protected usersQueryRepository: UsersQueryRepository,
+    protected commentsQueryRepository: CommentsQueryRepository,
+  ) {
   }
 
   async getComment(req: RequestWithParams<{ id: string }>, res: Response) {
@@ -144,7 +142,6 @@ class CommentsController {
   }
 }
 
-const commentsController = new CommentsController()
 
 commentsRouter.get('/:id',
   LightAccessTokenAuthMiddleware,

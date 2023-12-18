@@ -5,14 +5,11 @@ import {PostsRepository} from "../repositories/posts";
 import {PostsQueryRepository} from "../repositories/posts/query";
 
 export class PostsService {
-  postsRepository: PostsRepository
-  postsQueryRepository: PostsQueryRepository
-  blogsQueryRepository: BlogsQueryRepository
-
-  constructor() {
-    this.postsRepository = new PostsRepository()
-    this.postsQueryRepository = new PostsQueryRepository()
-    this.blogsQueryRepository = new BlogsQueryRepository()
+  constructor(
+    protected postsRepository: PostsRepository,
+    protected postsQueryRepository: PostsQueryRepository,
+    protected blogsQueryRepository: BlogsQueryRepository,
+  ) {
   }
 
   async getAllPosts(pageNumber: number = 1,
@@ -95,5 +92,3 @@ export class PostsService {
     return !!deleteResult.deletedCount
   }
 }
-
-export const postsService = new PostsService()
