@@ -1,3 +1,4 @@
+import {inject, injectable} from "inversify";
 import {FindOptions, SortDirection} from "mongodb";
 import {v4 as uuidv4} from "uuid";
 import {IBlog, IPost, LIKE_STATUS_ENUM} from "../interfaces";
@@ -5,11 +6,12 @@ import {BlogsRepository} from "../repositories/blogs";
 import {BlogsQueryRepository} from "../repositories/blogs/query";
 import {PostsQueryRepository} from "../repositories/posts/query";
 
+@injectable()
 export class BlogsService {
   constructor(
-    protected blogsRepository: BlogsRepository,
-    protected blogsQueryRepository: BlogsQueryRepository,
-    protected postsQueryRepository: PostsQueryRepository
+    @inject(BlogsRepository) private blogsRepository: BlogsRepository,
+    @inject(BlogsQueryRepository) private blogsQueryRepository: BlogsQueryRepository,
+    @inject(PostsQueryRepository) private postsQueryRepository: PostsQueryRepository
   ) {
   }
 

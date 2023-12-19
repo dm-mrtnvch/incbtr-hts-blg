@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import cookieParser from "cookie-parser";
 import express, {Request, Response} from 'express'
 import {runDb} from "./db/db";

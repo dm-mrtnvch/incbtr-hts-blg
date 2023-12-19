@@ -1,8 +1,15 @@
 import {NextFunction, Request, Response} from "express";
 import {ValidationError, validationResult} from "express-validator";
-import {jwtService, requestsService, usersQueryRepository} from "../compostion-root";
+import {JwtService} from "../application/jwt/jwt.service";
 import {RequestsModel} from "../db/models";
 import {RequestErrorsValidationType} from "../interfaces";
+import {container} from "../inversify/inversify.config";
+import {UsersQueryRepository} from "../repositories/users/query";
+import {RequestsService} from "../services/requests.service";
+
+const jwtService = container.resolve(JwtService)
+const requestsService = container.resolve(RequestsService)
+const usersQueryRepository = container.resolve(UsersQueryRepository)
 
 export const BasicAuthMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const adminCredentials = 'YWRtaW46cXdlcnR5'

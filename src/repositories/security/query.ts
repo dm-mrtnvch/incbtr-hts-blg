@@ -1,5 +1,7 @@
+import {injectable} from "inversify";
 import {DeviceSessionModel} from "../../db/models";
 
+@injectable()
 export class SecurityQueryRepository {
   /// what about projection
   getActiveSessionsByUserId(userId: string): any {

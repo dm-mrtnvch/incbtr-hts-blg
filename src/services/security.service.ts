@@ -1,7 +1,11 @@
+import {inject, injectable} from "inversify";
 import {SecurityRepository} from "../repositories/security";
 
+@injectable()
 export class SecurityService {
-  constructor(protected securityRepository: SecurityRepository) {
+  constructor(
+    @inject(SecurityRepository) private securityRepository: SecurityRepository
+  ) {
   }
 
   async createDeviceSession(newSession: any) {

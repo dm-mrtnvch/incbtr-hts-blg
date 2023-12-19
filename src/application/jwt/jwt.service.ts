@@ -1,3 +1,4 @@
+import {injectable} from "inversify";
 import jwt from 'jsonwebtoken'
 // import {expiredTokensCollection} from "../../db/db";
 const accessTokenSecret = '123'
@@ -9,6 +10,7 @@ export type JwtPayload = {
   exp: number
 }
 
+@injectable()
 export class JwtService  {
   async createJwt(userId: string) {
     try {

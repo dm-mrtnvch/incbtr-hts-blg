@@ -1,7 +1,11 @@
+import {inject, injectable} from "inversify";
 import {RequestsRepository} from "../repositories/requests";
 
+@injectable()
 export class RequestsService {
-  constructor(protected requestsRepository: RequestsRepository) {
+  constructor(
+    @inject(RequestsRepository) private requestsRepository: RequestsRepository
+  ) {
   }
 
   async increaseRequestCount(newRequest: any) {

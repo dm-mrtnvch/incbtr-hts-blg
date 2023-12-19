@@ -1,7 +1,9 @@
+import {injectable} from "inversify";
 import {FilterQuery} from "mongoose";
 import {BlogModel, PostModel} from "../../db/models";
 import {IBlog, IPost, LIKE_STATUS_ENUM} from "../../interfaces";
 
+@injectable()
 export class BlogsRepository {
   /// typization ??
   async getAllBlogs(filterOptions: FilterQuery<IBlog>, projection: any, findOptions: any) {

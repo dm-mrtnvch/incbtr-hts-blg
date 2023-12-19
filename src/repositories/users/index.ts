@@ -1,7 +1,8 @@
+import {injectable} from "inversify";
 import {v4 as uuidv4} from "uuid";
-
 import {UserModel} from "../../db/models";
 
+@injectable()
 export class UsersRepository {
   /// tipization
   async createUser(newUser: any): Promise<any> {

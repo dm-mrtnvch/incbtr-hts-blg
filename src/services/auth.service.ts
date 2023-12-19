@@ -1,17 +1,19 @@
 import bcrypt from "bcrypt";
+import {inject, injectable} from "inversify";
 import {EmailAdapter} from "../adapters/emailAdapter";
 import {IUserDb} from "../interfaces";
 import {UsersRepository} from "../repositories/users";
 import {UsersQueryRepository} from "../repositories/users/query";
 
+@injectable()
 export class AuthService {
   constructor(
-    protected emailAdapter: EmailAdapter,
-    protected usersRepository: UsersRepository,
-    protected usersQueryRepository: UsersQueryRepository
+    @inject(EmailAdapter) private emailAdapter: EmailAdapter,
+    @inject(UsersRepository) private usersRepository: UsersRepository,
+    @inject(UsersQueryRepository) private usersQueryRepository: UsersQueryRepository
   ) {
-
   }
+
   async confirmEmail(code: string): Promise<boolean> {
     const user = await this.usersQueryRepository.findUserByConfirmationCode(code)
 

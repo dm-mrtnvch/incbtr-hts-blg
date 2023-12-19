@@ -1,15 +1,16 @@
+import {inject, injectable} from "inversify";
 import {FindOptions, SortDirection} from "mongodb"
 import {v4 as uuidv4} from "uuid"
 import {CommentViewInterface, PaginationInterface} from "../interfaces"
 import {CommentsRepository} from "../repositories/comments"
 import {CommentsQueryRepository} from "../repositories/comments/query"
 
+@injectable()
 export class CommentsService {
   constructor(
-    protected commentsRepository: CommentsRepository,
-    protected commentsQueryRepository: CommentsQueryRepository,
+    @inject(CommentsRepository) private commentsRepository: CommentsRepository,
+    @inject(CommentsQueryRepository) private commentsQueryRepository: CommentsQueryRepository,
   ) {
-
   }
 
   async createComment(content: string, userId: string, userLogin: string, postId: string) {

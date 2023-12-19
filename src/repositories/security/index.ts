@@ -1,5 +1,7 @@
+import {injectable} from "inversify";
 import {DeviceSessionModel} from "../../db/models";
 
+@injectable()
 export class SecurityRepository {
   createDeviceSession(newSession: any) {
     return DeviceSessionModel.create(newSession)

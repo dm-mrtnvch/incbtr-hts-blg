@@ -1,6 +1,8 @@
+import {injectable} from "inversify";
 import {BlogModel} from "../../db/models";
 import {IBlog} from "../../interfaces";
 
+@injectable()
 export class BlogsQueryRepository {
   async getAllBlogsCount(filterOptions: any): Promise<number> {
     return BlogModel.countDocuments(filterOptions)

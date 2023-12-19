@@ -1,3 +1,4 @@
+import {injectable} from "inversify";
 import nodemailer, {SentMessageInfo} from "nodemailer";
 
 const transporter = nodemailer.createTransport({
@@ -8,6 +9,7 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+@injectable()
 export class EmailAdapter {
   async sendEmailConfirmationMessage(email: string, confirmationCode: string): Promise<SentMessageInfo> {
     const info = await transporter.sendMail({

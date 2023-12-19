@@ -1,7 +1,9 @@
+import {injectable} from "inversify";
 import {DeleteResult, UpdateResult} from "mongodb";
 import {PostModel} from "../../db/models";
 import {IPost, LIKE_STATUS_ENUM} from "../../interfaces";
 
+@injectable()
 export class PostsRepository {
   /// typization
   async getAllPosts(filterOptions: any, projection: any, findOptions: any, userId: string): Promise<any> {

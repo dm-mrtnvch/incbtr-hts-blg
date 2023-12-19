@@ -1,7 +1,9 @@
+import {injectable} from "inversify";
 import {UpdateResult} from "mongodb";
 import {CommentModel} from "../../db/models";
 import {LIKE_STATUS_ENUM} from "../../interfaces";
 
+@injectable()
 export class CommentsRepository {
   async createComment(newComment: any) {
     const createdComment = await CommentModel.create(newComment)

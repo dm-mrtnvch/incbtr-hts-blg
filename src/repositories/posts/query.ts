@@ -1,6 +1,8 @@
+import {injectable} from "inversify";
 import {PostModel} from "../../db/models";
-import {IPost, LIKE_STATUS_ENUM} from "../../interfaces";
+import {LIKE_STATUS_ENUM} from "../../interfaces";
 
+@injectable()
 export class PostsQueryRepository {
   async getPostById(id: string): Promise<any> {
     return PostModel

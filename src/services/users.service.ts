@@ -1,17 +1,18 @@
 import bcrypt from "bcrypt"
 import add from "date-fns/add";
+import {inject, injectable} from "inversify";
 import {v4 as uuidv4} from "uuid";
 import {EmailAdapter} from "../adapters/emailAdapter";
 import {EmailConfirmationType} from "../interfaces";
 import {UsersRepository} from "../repositories/users";
 import {UsersQueryRepository} from "../repositories/users/query";
 
-
+@injectable()
 export class UsersService {
   constructor(
-    protected emailAdapter: EmailAdapter,
-    protected usersRepository: UsersRepository,
-    protected usersQueryRepository: UsersQueryRepository
+    @inject(EmailAdapter) private emailAdapter: EmailAdapter,
+    @inject(UsersRepository) private usersRepository: UsersRepository,
+    @inject(UsersQueryRepository) private usersQueryRepository: UsersQueryRepository
   ) {}
 
   // async getAllUsers(

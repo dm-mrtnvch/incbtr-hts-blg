@@ -1,8 +1,10 @@
+import {injectable} from "inversify";
 import {FilterQuery} from "mongoose";
 import {UserModel} from "../../db/models";
 import {IUserDb} from "../../interfaces";
 import {SortDirection} from "mongodb";
 
+@injectable()
 export class UsersQueryRepository {
   /// typization
   async getAllUsers(

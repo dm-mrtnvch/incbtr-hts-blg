@@ -1,14 +1,16 @@
+import {inject, injectable} from "inversify";
 import {FindOptions, SortDirection} from "mongodb";
 import {v4 as uuidv4} from "uuid";
 import {BlogsQueryRepository} from "../repositories/blogs/query";
 import {PostsRepository} from "../repositories/posts";
 import {PostsQueryRepository} from "../repositories/posts/query";
 
+@injectable()
 export class PostsService {
   constructor(
-    protected postsRepository: PostsRepository,
-    protected postsQueryRepository: PostsQueryRepository,
-    protected blogsQueryRepository: BlogsQueryRepository,
+    @inject(PostsRepository) private postsRepository: PostsRepository,
+    @inject(PostsQueryRepository) private postsQueryRepository: PostsQueryRepository,
+    @inject(BlogsQueryRepository) private blogsQueryRepository: BlogsQueryRepository,
   ) {
   }
 
