@@ -75,5 +75,3 @@ export class PostsRepository {
     return PostModel.deleteOne({id})
   }
 }
-
-export const postsRepository = new PostsRepository()

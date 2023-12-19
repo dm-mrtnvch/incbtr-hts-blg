@@ -63,5 +63,3 @@ export class CommentsQueryRepository {
     }
   }
 }
-
-export const commentsQueryRepository = new CommentsQueryRepository()

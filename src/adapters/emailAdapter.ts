@@ -42,4 +42,3 @@ export class EmailAdapter {
   }
 }
 
-export const emailAdapter = new EmailAdapter()

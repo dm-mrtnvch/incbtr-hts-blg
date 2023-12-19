@@ -1,4 +1,5 @@
 import {Request, Response, Router} from "express";
+import {securityController} from "../compostion-root";
 import {DeviceSessionModel} from "../db/models";
 import {RefreshTokenAuthMiddleware} from "../middlewares/middlewares";
 import {SecurityQueryRepository} from "../repositories/security/query";
@@ -6,13 +7,11 @@ import {SecurityService} from "../services/security.service";
 
 export const securityRouter = Router()
 
-class SecurityController {
-  securityQueryRepository: SecurityQueryRepository
-  securityService: SecurityService
-
-  constructor() {
-    this.securityQueryRepository = new SecurityQueryRepository()
-    this.securityService = new SecurityService()
+export class SecurityController {
+  constructor(
+    protected securityService: SecurityService,
+    protected securityQueryRepository: SecurityQueryRepository
+  ) {
   }
 
   async getDevices(req: Request, res: Response) {
@@ -50,8 +49,6 @@ class SecurityController {
     }
   }
 }
-
-const securityController = new SecurityController()
 
 securityRouter.get('/devices',
   RefreshTokenAuthMiddleware,

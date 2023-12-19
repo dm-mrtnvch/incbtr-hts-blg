@@ -60,5 +60,3 @@ export class PostsQueryRepository {
     return PostModel.countDocuments(filterOptions)
   }
 }
-
-export const postsQueryRepository = new PostsQueryRepository()

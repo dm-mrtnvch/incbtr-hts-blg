@@ -16,5 +16,3 @@ export class SecurityQueryRepository {
       .lean()
   }
 }
-
-export const securityQueryRepository = new SecurityQueryRepository()

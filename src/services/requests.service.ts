@@ -1,9 +1,11 @@
-import {requestsRepository} from "../repositories/requests";
+import {RequestsRepository} from "../repositories/requests";
 
-class RequestsService {
+export class RequestsService {
+  constructor(protected requestsRepository: RequestsRepository) {
+  }
+
   async increaseRequestCount(newRequest: any) {
-    return requestsRepository.increaseRequestCount(newRequest)
+    return this.requestsRepository.increaseRequestCount(newRequest)
   }
 }
 
-export const requestsService = new RequestsService()

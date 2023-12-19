@@ -36,5 +36,3 @@ export class CommentsRepository {
     return CommentModel.deleteOne({id})
   }
 }
-
-export const commentsRepository = new CommentsRepository()

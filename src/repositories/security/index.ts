@@ -21,5 +21,3 @@ export class SecurityRepository {
     return DeviceSessionModel.deleteOne({userId, deviceId})
   }
 }
-
-export const securityRepository = new SecurityRepository()

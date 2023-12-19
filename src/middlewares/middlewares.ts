@@ -1,11 +1,8 @@
 import {NextFunction, Request, Response} from "express";
 import {ValidationError, validationResult} from "express-validator";
-import {jwtService} from "../application/jwt/jwt.service";
-
+import {jwtService, requestsService, usersQueryRepository} from "../compostion-root";
 import {RequestsModel} from "../db/models";
 import {RequestErrorsValidationType} from "../interfaces";
-import {usersQueryRepository} from "../repositories/users/query";
-import {requestsService} from "../services/requests.service";
 
 export const BasicAuthMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const adminCredentials = 'YWRtaW46cXdlcnR5'

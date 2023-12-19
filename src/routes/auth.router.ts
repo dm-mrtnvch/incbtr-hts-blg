@@ -6,6 +6,7 @@ import {body} from "express-validator";
 import {v4 as uuidv4} from "uuid";
 import {EmailAdapter} from "../adapters/emailAdapter";
 import {JwtService} from "../application/jwt/jwt.service";
+import {authController, usersQueryRepository} from "../compostion-root";
 import {DeviceSessionModel, UserModel} from "../db/models";
 import {emailPattern, passwordPattern} from "../helpers/utils";
 import {RequestWithBody} from "../interfaces";
@@ -16,30 +17,22 @@ import {
   RequestsLimitMiddleware
 } from "../middlewares/middlewares";
 import {UsersRepository} from "../repositories/users";
-import {UsersQueryRepository, usersQueryRepository} from "../repositories/users/query";
-import {AuthService, authService} from "../services/auth.service";
+import {UsersQueryRepository} from "../repositories/users/query";
+import {AuthService} from "../services/auth.service";
 import {SecurityService} from "../services/security.service";
 import {UsersService} from "../services/users.service";
 
 export const authRouter = Router()
 
-class AuthController {
-  authService: AuthService
-  jwtService: JwtService
-  securityService: SecurityService
-  usersRepository: UsersRepository
-  usersQueryRepository: UsersQueryRepository
-  usersService: UsersService
-  emailAdapter: EmailAdapter
-
-  constructor() {
-    this.authService = new AuthService()
-    this.jwtService = new JwtService()
-    this.securityService = new SecurityService()
-    this.usersRepository = new UsersRepository()
-    this.usersQueryRepository = new UsersQueryRepository()
-    this.usersService = new UsersService()
-    this.emailAdapter = new EmailAdapter()
+export class AuthController {
+  constructor(
+    protected authService: AuthService,
+    protected jwtService: JwtService,
+    protected securityService: SecurityService,
+    protected usersService: UsersService,
+    protected usersRepository: UsersRepository,
+    protected usersQueryRepository: UsersQueryRepository,
+    protected emailAdapter: EmailAdapter) {
   }
 
   async login(req: RequestWithBody<{ loginOrEmail: string, password: string }>, res: Response) {
@@ -151,7 +144,7 @@ class AuthController {
     const {newPassword, recoveryCode} = req.body
     const user = await this.usersQueryRepository.findUserByPasswordRecoveryCode(recoveryCode)
     const passwordSalt = await bcrypt.genSalt(10)
-    const passwordHash = await authService._generateHash(newPassword, passwordSalt)
+    const passwordHash = await this.authService._generateHash(newPassword, passwordSalt)
 
     await UserModel
       .updateOne({id: user?.id}, {
@@ -187,7 +180,6 @@ class AuthController {
   }
 }
 
-const authController = new AuthController()
 
 authRouter.post('/login',
   RequestsLimitMiddleware,

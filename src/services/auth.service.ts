@@ -1,33 +1,40 @@
 import bcrypt from "bcrypt";
-import {emailAdapter} from "../adapters/emailAdapter";
+import {EmailAdapter} from "../adapters/emailAdapter";
 import {IUserDb} from "../interfaces";
-import {usersRepository} from "../repositories/users";
-import {usersQueryRepository} from "../repositories/users/query";
+import {UsersRepository} from "../repositories/users";
+import {UsersQueryRepository} from "../repositories/users/query";
 
 export class AuthService {
+  constructor(
+    protected emailAdapter: EmailAdapter,
+    protected usersRepository: UsersRepository,
+    protected usersQueryRepository: UsersQueryRepository
+  ) {
+
+  }
   async confirmEmail(code: string): Promise<boolean> {
-    const user = await usersQueryRepository.findUserByConfirmationCode(code)
+    const user = await this.usersQueryRepository.findUserByConfirmationCode(code)
 
     if (!user || user.emailConfirmation.isConfirmed || new Date() > user.emailConfirmation.expirationDate) {
       return false
     }
 
-    return await usersRepository.updateConfirmation(user.id)
+    return await this.usersRepository.updateConfirmation(user.id)
   }
 
   async resendRegistrationConfirmEmail(email: string) {
     try {
-      const user = await usersQueryRepository.findUserByEmail(email)
+      const user = await this.usersQueryRepository.findUserByEmail(email)
 
       if (user.emailConfirmation.isConfirmed) return false
 
-      await usersRepository.updateConfirmationCode(user.id)
-      const updatedUser = await usersQueryRepository.getUserById(user.id)
+      await this.usersRepository.updateConfirmationCode(user.id)
+      const updatedUser = await this.usersQueryRepository.getUserById(user.id)
 
       if (!updatedUser) return false
 
       if (user.emailConfirmation.confirmationCode !== updatedUser.emailConfirmation.confirmationCode) {
-        return await emailAdapter.sendEmailConfirmationMessage(email, updatedUser.emailConfirmation.confirmationCode)
+        return await this.emailAdapter.sendEmailConfirmationMessage(email, updatedUser.emailConfirmation.confirmationCode)
       } else {
         return false
       }
@@ -38,7 +45,7 @@ export class AuthService {
   }
 
   async checkCredentials(loginOrEmail: string, password: string) {
-    const user: IUserDb | null = await usersQueryRepository.findUserByLoginOrEmail(loginOrEmail)
+    const user: IUserDb | null = await this.usersQueryRepository.findUserByLoginOrEmail(loginOrEmail)
 
     if (!user || !user.emailConfirmation.isConfirmed) return false
 
@@ -58,4 +65,3 @@ export class AuthService {
   }
 }
 
-export const authService = new AuthService()

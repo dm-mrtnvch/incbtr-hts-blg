@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt"
 import add from "date-fns/add";
 import {v4 as uuidv4} from "uuid";
-import {emailAdapter} from "../adapters/emailAdapter";
+import {EmailAdapter} from "../adapters/emailAdapter";
 import {EmailConfirmationType} from "../interfaces";
 import {UsersRepository} from "../repositories/users";
 import {UsersQueryRepository} from "../repositories/users/query";
@@ -9,6 +9,7 @@ import {UsersQueryRepository} from "../repositories/users/query";
 
 export class UsersService {
   constructor(
+    protected emailAdapter: EmailAdapter,
     protected usersRepository: UsersRepository,
     protected usersQueryRepository: UsersQueryRepository
   ) {}
@@ -162,7 +163,7 @@ export class UsersService {
 
       if (newUser.emailConfirmation.confirmationCode) {
         try {
-          await emailAdapter.sendEmailConfirmationMessage(email, newUser.emailConfirmation.confirmationCode)
+          await this.emailAdapter.sendEmailConfirmationMessage(email, newUser.emailConfirmation.confirmationCode)
         } catch (error) {
           console.log(error)
           await this.usersRepository.deleteUserById(newUser.id)
